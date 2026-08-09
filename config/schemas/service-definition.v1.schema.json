@@ -81,7 +81,7 @@
       "required": ["gracefulTimeoutSeconds", "terminateTree"],
       "properties": {
         "gracefulTimeoutSeconds": { "type": "integer", "minimum": 1, "maximum": 600 },
-        "terminateTree": { "type": "boolean" }
+        "terminateTree": { "const": true }
       }
     },
     "logging": {

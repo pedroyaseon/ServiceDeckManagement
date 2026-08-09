@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ServiceDeckManagement.Host\ServiceDeckManagement.Host.csproj" />
+    <ProjectReference Include="..\..\src\ServiceDeckManagement.Infrastructure\ServiceDeckManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\ServiceDeckManagement.TestApp\ServiceDeckManagement.TestApp.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyServiceDeckTestApp" AfterTargets="Build">
+    <ItemGroup>
+      <ServiceDeckTestAppFiles Include="..\ServiceDeckManagement.TestApp\bin\$(Configuration)\net10.0-windows\**\*" />
+      <ServiceDeckHostFiles Include="..\..\src\ServiceDeckManagement.Host\bin\$(Configuration)\net10.0-windows\**\*" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(ServiceDeckTestAppFiles)"
+      DestinationFiles="@(ServiceDeckTestAppFiles->'$(OutputPath)test-app\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+    <Copy
+      SourceFiles="@(ServiceDeckHostFiles)"
+      DestinationFiles="@(ServiceDeckHostFiles->'$(OutputPath)host-app\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

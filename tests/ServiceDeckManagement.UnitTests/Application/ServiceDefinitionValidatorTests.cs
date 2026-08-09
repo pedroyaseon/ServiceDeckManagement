@@ -138,6 +138,25 @@ public sealed class ServiceDefinitionValidatorTests
             error => error.Code == "logging.limits");
     }
 
+    [Fact]
+    public void Validate_RequiresTerminationOfTheWholeProcessTree()
+    {
+        var definition = TestServiceDefinitions.Valid() with
+        {
+            StopPolicy = new()
+            {
+                GracefulTimeoutSeconds = 20,
+                TerminateTree = false
+            }
+        };
+
+        var result = validator.Validate(definition);
+
+        Assert.Contains(
+            result.Errors,
+            error => error.Code == "stopPolicy.terminateTree");
+    }
+
     private sealed class AcceptingPathResolver : IPortablePathResolver
     {
         public PathResolutionResult Resolve(string? relativePath) =>

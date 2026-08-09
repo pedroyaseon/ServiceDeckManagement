@@ -2,8 +2,9 @@
 
 ## Estado
 
-O contrato, o schema e a validação sintática estão implementados. Persistência,
-DPAPI e consumo pelo Service Host ainda estão planejados.
+O contrato, o schema, a validação e o consumo pelo Service Host estão
+implementados. Persistência atômica e resolução de segredos com DPAPI ainda
+dependem do Manager.
 
 ## Arquivos públicos e locais
 
@@ -27,7 +28,10 @@ Configurações reais em `config/services/`, `config/application.json` e
 - argumentos são um array e não uma linha de shell;
 - nomes de variáveis seguem o formato do Windows;
 - valores sensíveis usam `secretReferences`;
+- o Host falha de modo fechado enquanto `secretReferences` não puder ser
+  resolvido pelo Manager;
 - health checks HTTP e TCP aceitam apenas loopback na v1;
+- `stopPolicy.terminateTree` deve ser `true`;
 - políticas possuem limites explícitos de tempo, tamanho e tentativa;
 - propriedades JSON obrigatórias ausentes, desconhecidas ou duplicadas causam
   erro.
@@ -37,3 +41,6 @@ Configurações reais em `config/services/`, `config/application.json` e
 Consulte `config/examples/service-definition.example.json`. O exemplo não
 contém segredo nem caminho pessoal e não deve ser usado como configuração de
 produção sem revisão.
+
+Aplicações gerenciadas devem escrever stdout e stderr em UTF-8. Sequências ANSI,
+controles invisíveis e caracteres inválidos são removidos antes da persistência.

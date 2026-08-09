@@ -302,6 +302,14 @@ public sealed class ServiceDefinitionValidator(
                 "stopPolicy.gracefulTimeoutSeconds",
                 "O timeout deve estar entre 1 e 600 segundos."));
         }
+
+        if (policy is not null && !policy.TerminateTree)
+        {
+            errors.Add(new(
+                "stopPolicy.terminateTree",
+                "stopPolicy.terminateTree",
+                "A versão 1 exige o encerramento seguro de toda a árvore de processos."));
+        }
     }
 
     private static void ValidateLogging(
