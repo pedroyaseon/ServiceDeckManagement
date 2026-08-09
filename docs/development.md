@@ -5,13 +5,8 @@
 O SDK é fixado por `global.json`. Para manter ferramentas dentro do projeto, o
 SDK pode ser instalado em `.dotnet/`; essa pasta é ignorada pelo Git.
 
-O wrapper `scripts/dotnet.ps1`:
-
-- prefere `.dotnet/dotnet.exe`;
-- usa `.dotnet-home/` para estado da CLI;
-- usa `.packages/` para pacotes NuGet;
-- desabilita telemetria e experiência inicial;
-- não gera certificado ASP.NET durante comandos da fundação.
+O wrapper `scripts/dotnet.ps1` prefere `.dotnet/dotnet.exe`, mantém estado da CLI
+em `.dotnet-home/`, pacotes em `.packages/` e desabilita telemetria.
 
 ## Comandos
 
@@ -41,9 +36,17 @@ git diff --check
 ## Testes do Service Host
 
 `ServiceDeckManagement.HostTests` usa apenas processos auxiliares compilados no
-próprio repositório. Os testes validam argumentos separados, logs, rotação,
-reinício, carregamento da definição e encerramento da árvore pelo Job Object.
+repositório. Valida argumentos separados, logs, rotação, reinício, carregamento
+da definição e encerramento da árvore pelo Job Object.
 
-Nenhum teste altera o SCM ou opera serviços e processos reais do usuário. Testes
-de instalação no SCM serão isolados na PR do Manager e exigirão cleanup em
-`finally`.
+## Testes do Manager
+
+`ServiceDeckManagement.ManagerTests` valida persistência atômica, DPAPI,
+integridade da auditoria, framing, autenticação, autorização e regras de
+pertencimento ao SCM. O adaptador do SCM é substituído por um backend em memória:
+nenhum teste normal cria, para ou remove serviços reais.
+
+O teste real das APIs nativas requer uma VM Windows descartável, execução
+administrativa, nomes temporários reservados e cleanup em `finally`. Esse teste
+é um gate manual de release e não deve ser executado em uma estação de trabalho
+com serviços do usuário.

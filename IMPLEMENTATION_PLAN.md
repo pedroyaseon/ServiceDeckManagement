@@ -2,12 +2,11 @@
 
 ## 1. Estado e autoridade deste documento
 
-Este documento é a fonte canônica de escopo da versão 1.0. O estado atual é
-`Service Host`: contratos v1, validação, raiz portátil e supervisão local de uma
-aplicação estão implementados. Manager, API, launcher e dashboard permanecem
-planejados.
+Este documento é a fonte canônica de escopo da versão 1.0. Fundação, Service
+Host e núcleo local do Manager estão implementados. API, integração de segredos,
+launcher e dashboard permanecem planejados.
 
-Versão atual do produto: `1.0.0-alpha.3`.
+Versão atual do produto: `1.0.0-alpha.4`.
 
 Alterações de arquitetura, confiança, armazenamento, API pública ou escopo da
 v1.0 exigem atualização deste documento ou um Architecture Decision Record
@@ -164,6 +163,10 @@ Responsabilidades:
 
 Serviço local que concentra operações privilegiadas. Não possui endpoint HTTP e
 não aceita conexões remotas.
+
+Estado: núcleo implementado em `1.0.0-alpha.4`. O SCM nativo, persistência,
+inventário, auditoria e protocolo local estão presentes. Provisionamento do SID
+da API, segredos e ciclo completo do instalador continuam nas etapas próprias.
 
 Responsabilidades:
 
@@ -494,7 +497,7 @@ Branch: `feature/service-host`
 - Job Objects, logs, parada e reinício;
 - testes unitários e integração Windows isolada.
 
-Estado: implementado na branch da etapa; sujeito aos gates e à revisão da PR.
+Estado: implementado e integrado à `main` pela PR 8.
 
 Versão: `1.0.0-alpha.3`.
 
@@ -505,6 +508,9 @@ Branch: `feature/service-manager`
 - SCM nativo, persistência atômica, ACL e Named Pipes;
 - inventário estrito e auditoria;
 - instalação, edição, remoção e reparo.
+
+Estado: implementado na branch da etapa; sujeito aos gates, à revisão da PR e ao
+gate administrativo em VM descartável antes da release.
 
 Versão: `1.0.0-alpha.4`.
 
@@ -573,6 +579,11 @@ Branch: `release/v1.0.0`
 - nunca operar serviços reais da máquina;
 - validar SCM, Job Objects, Named Pipes e ACL;
 - validar processos que travam, falham, ignoram parada ou geram muito log.
+
+Os testes automatizados comuns não recebem privilégio administrativo e usam um
+backend de SCM em memória. O gate nativo do SCM é executado somente em VM
+descartável, com nomes temporários reservados e cleanup garantido; nunca na
+máquina de uso diário.
 
 ### API e segurança
 
@@ -659,8 +670,8 @@ Também são versionados:
 - release possui SBOM, SHA-256 e notas verificáveis;
 - nenhum segredo, runtime ou caminho pessoal existe no repositório.
 
-## 22. Aprovação para iniciar implementação
+## 22. Aprovação e progressão
 
-A aprovação desta documentação autoriza somente a abertura da PR 2. Cada etapa
-posterior continua sujeita à revisão do escopo, dos testes e do risco da PR
-anterior.
+A fundação, o Service Host e o núcleo do Manager foram autorizados e
+implementados em PRs separadas. Cada etapa posterior continua sujeita à revisão
+do escopo, dos testes e do risco da PR anterior.
