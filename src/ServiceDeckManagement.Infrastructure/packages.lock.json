@@ -5,8 +5,8 @@
       "servicedeckmanagement.application": {
         "type": "Project",
         "dependencies": {
-          "ServiceDeckManagement.Contracts": "[1.0.0-alpha.2, )",
-          "ServiceDeckManagement.Domain": "[1.0.0-alpha.2, )"
+          "ServiceDeckManagement.Contracts": "[1.0.0-alpha.3, )",
+          "ServiceDeckManagement.Domain": "[1.0.0-alpha.3, )"
         }
       },
       "servicedeckmanagement.contracts": {

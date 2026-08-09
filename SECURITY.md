@@ -25,7 +25,7 @@ privilegiada de processo no Windows. Portanto:
 O threat model completo e os gates de segurança estão em
 `IMPLEMENTATION_PLAN.md`.
 
-## Controles disponíveis na fundação
+## Controles implementados
 
 - resolução de caminhos limitada à raiz portátil;
 - bloqueio de caminhos absolutos, UNC, traversal, nomes de dispositivo,
@@ -36,7 +36,17 @@ O threat model completo e os gates de segurança estão em
 - dependências restauradas por fonte única, versão central e lock file;
 - `.gitignore` testado automaticamente;
 - verificação pública de segredos, caminhos pessoais e encoding.
+- inicialização direta de arquivos `.exe`, com `UseShellExecute = false` e
+  argumentos separados;
+- revalidação do executável e do diretório imediatamente antes da execução;
+- Windows Job Object com `KILL_ON_JOB_CLOSE` para conter a árvore de processos;
+- stdout e stderr limitados, sanitizados e persistidos em UTF-8;
+- rotação e retenção de logs com limites de arquivo e total;
+- reinício com backoff, limite de tentativas e circuit breaker;
+- health checks limitados a processo e alvos HTTP/TCP em loopback;
+- falha fechada para referências de segredo enquanto o Manager não existe.
 
-Esses controles ainda não constituem um runtime seguro. A autorização em duas
-camadas, DPAPI, Named Pipes, SCM e execução de processos pertencem às próximas
-etapas e não devem ser descritos como implementados.
+O Service Host não é um sandbox para executar código hostil. Somente aplicações
+confiáveis, escolhidas por um administrador, podem ser gerenciadas. Autorização
+em duas camadas, DPAPI, Named Pipes e operações no SCM pertencem às próximas
+etapas e não devem ser descritas como implementadas.

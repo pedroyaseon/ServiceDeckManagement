@@ -4,10 +4,10 @@ Service Deck Management é uma plataforma open source para registrar, executar,
 supervisionar e administrar aplicações como Serviços do Windows, sem depender do
 NSSM ou de outro wrapper externo.
 
-O projeto está na versão `1.0.0-alpha.2`. A fundação contém contratos
-versionados, validação de configuração, resolução segura da raiz portátil e
-testes de arquitetura. Manager, Service Host, API, launcher e dashboard ainda
-estão planejados e serão implementados em PRs separadas.
+O projeto está na versão `1.0.0-alpha.3`. A fundação e o Service Host estão
+implementados. O Host executa uma aplicação diretamente, contém sua árvore em
+um Windows Job Object, captura logs limitados e aplica health checks e política
+de reinício. Manager, API, launcher e dashboard permanecem planejados.
 
 ## Princípios
 
@@ -33,13 +33,14 @@ Instale o SDK definido em `global.json` localmente ou em `.dotnet/`. Em seguida:
 & '.\scripts\verify-gitignore.ps1'
 ```
 
-Consulte [docs/development.md](docs/development.md) e
-[docs/configuration-v1.md](docs/configuration-v1.md).
+Consulte [docs/development.md](docs/development.md),
+[docs/configuration-v1.md](docs/configuration-v1.md) e
+[docs/service-host.md](docs/service-host.md).
 
 ## Estado
 
-Fundação técnica da v1.0 em desenvolvimento. Nenhum serviço é instalado ou
-operado por esta etapa.
+Service Host em validação. Esta etapa ainda não instala registros no Windows:
+essa operação privilegiada pertence ao Manager da próxima PR.
 
 ## Licença
 

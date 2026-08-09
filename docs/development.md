@@ -1,4 +1,4 @@
-# Desenvolvimento da fundação
+# Desenvolvimento
 
 ## SDK
 
@@ -38,7 +38,12 @@ git diff --check
 - CI usa `dotnet restore --locked-mode`;
 - auditoria NuGet verifica dependências diretas e transitivas.
 
-## Limites desta etapa
+## Testes do Service Host
 
-Os projetos atuais não instalam serviços, não iniciam processos e não abrem
-porta de rede. Testes que alterem o SCM não pertencem a esta PR.
+`ServiceDeckManagement.HostTests` usa apenas processos auxiliares compilados no
+próprio repositório. Os testes validam argumentos separados, logs, rotação,
+reinício, carregamento da definição e encerramento da árvore pelo Job Object.
+
+Nenhum teste altera o SCM ou opera serviços e processos reais do usuário. Testes
+de instalação no SCM serão isolados na PR do Manager e exigirão cleanup em
+`finally`.

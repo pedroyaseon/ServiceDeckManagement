@@ -3,11 +3,11 @@
 ## 1. Estado e autoridade deste documento
 
 Este documento é a fonte canônica de escopo da versão 1.0. O estado atual é
-`fundação técnica`: contratos v1, validação, raiz portátil e testes de
-arquitetura estão implementados. Manager, Service Host, API, launcher e
-dashboard permanecem planejados.
+`Service Host`: contratos v1, validação, raiz portátil e supervisão local de uma
+aplicação estão implementados. Manager, API, launcher e dashboard permanecem
+planejados.
 
-Versão atual do produto: `1.0.0-alpha.2`.
+Versão atual do produto: `1.0.0-alpha.3`.
 
 Alterações de arquitetura, confiança, armazenamento, API pública ou escopo da
 v1.0 exigem atualização deste documento ou um Architecture Decision Record
@@ -135,6 +135,9 @@ Aplicação gerenciada + Job Object
 
 ### 6.1 Service Host
 
+Estado: implementado em `1.0.0-alpha.3`, exceto integrações explicitamente
+atribuídas ao Manager e aos clientes posteriores.
+
 Cada aplicação é registrada como um Serviço do Windows separado, usando o mesmo
 binário:
 
@@ -145,7 +148,7 @@ ServiceDeckManagement.Host.exe --service-id minha-api
 Responsabilidades:
 
 - carregar uma definição validada e imutável durante a execução;
-- comunicar corretamente estados Pending, Running, Paused e Stopped ao SCM;
+- comunicar corretamente estados de início, execução e parada ao SCM;
 - iniciar o executável diretamente com `ProcessStartInfo.ArgumentList`;
 - aplicar diretório, argumentos e ambiente sem shell;
 - vincular o processo a um Job Object com política de encerramento da árvore;
@@ -307,6 +310,10 @@ Estados de domínio:
 - StopPending;
 - Failed;
 - Disabled.
+
+Pause e continue não fazem parte da v1 porque aplicações arbitrárias não
+possuem uma semântica cooperativa uniforme. A decisão e suas consequências estão
+registradas no ADR 0002.
 
 Transições inválidas retornam erro de conflito. Start, stop e restart são
 idempotentes quando possível. Toda transição possui timeout, cancellation token,
@@ -486,6 +493,8 @@ Branch: `feature/service-host`
 - ProcessStartInfo sem shell;
 - Job Objects, logs, parada e reinício;
 - testes unitários e integração Windows isolada.
+
+Estado: implementado na branch da etapa; sujeito aos gates e à revisão da PR.
 
 Versão: `1.0.0-alpha.3`.
 
