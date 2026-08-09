@@ -3,12 +3,15 @@ using System.Security.Cryptography;
 using System.Security.Principal;
 using ServiceDeckManagement.Contracts.Manager;
 using ServiceDeckManagement.Infrastructure.LocalProtocol;
+using ServiceDeckManagement.Infrastructure.Security;
 
 namespace ServiceDeckManagement.Manager;
 
 public sealed class ManagerPipeServer(
+    ManagerPipeFactory pipeFactory,
     ITransportKeyProvider keyProvider,
-    ManagerRequestDispatcher dispatcher)
+    ManagerRequestDispatcher dispatcher,
+    ManagerSecurityOptions securityOptions)
 {
     private static readonly TimeSpan SessionTimeout = TimeSpan.FromSeconds(15);
 
@@ -26,7 +29,7 @@ public sealed class ManagerPipeServer(
                     continue;
                 }
 
-                var pipe = ManagerPipeFactory.Create();
+                var pipe = pipeFactory.Create();
                 try
                 {
                     await pipe.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
@@ -113,7 +116,7 @@ public sealed class ManagerPipeServer(
         }
     }
 
-    private static ManagerClientIdentity GetClientIdentity(NamedPipeServerStream pipe)
+    private ManagerClientIdentity GetClientIdentity(NamedPipeServerStream pipe)
     {
         ManagerClientIdentity? result = null;
         pipe.RunAsClient(() =>
@@ -124,13 +127,22 @@ public sealed class ManagerPipeServer(
             var principal = new WindowsPrincipal(identity);
             var isSystem = string.Equals(sid, "S-1-5-18", StringComparison.Ordinal);
             var isAdministrator = principal.IsInRole(WindowsBuiltInRole.Administrator);
-            if (!isSystem && !isAdministrator)
+            var isApi = string.Equals(
+                sid,
+                securityOptions.ApiClientSid,
+                StringComparison.OrdinalIgnoreCase);
+            if (!isSystem && !isAdministrator && !isApi)
             {
                 throw new UnauthorizedAccessException(
                     "O token do Windows não possui autorização administrativa.");
             }
 
-            result = new(sid, ServiceDeckManagement.Domain.Manager.ManagerRole.Administrator);
+            result = new(
+                sid,
+                isApi
+                    ? ServiceDeckManagement.Domain.Manager.ManagerRole.Viewer
+                    : ServiceDeckManagement.Domain.Manager.ManagerRole.Administrator,
+                isApi);
         });
 
         return result ??

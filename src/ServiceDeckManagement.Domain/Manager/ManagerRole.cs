@@ -1,7 +1,8 @@
 namespace ServiceDeckManagement.Domain.Manager;
 
 /// <summary>
-/// Papel derivado do token do Windows; nunca é aceito do conteúdo da requisição.
+/// Papel efetivo validado pelo Manager. Clientes diretos usam o token do
+/// Windows; delegação só é aceita do SID configurado para a API.
 /// </summary>
 public enum ManagerRole
 {

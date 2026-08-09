@@ -46,7 +46,8 @@ O threat model completo e os gates de segurança estão em
 - frames de 64 KiB, timeout de sessão e uma requisição por conexão;
 - autenticação mútua HMAC-SHA-256 com nonce de 256 bits;
 - chave de transporte protegida por DPAPI da máquina e ACL local restrita;
-- papel calculado do token do Windows, nunca aceito do JSON do cliente;
+- clientes diretos recebem papel pelo token do Windows; identidade delegada só
+  é aceita do SID configurado para a API e é reautorizada pelo Manager;
 - registros do SCM identificados por namespace, marcador e comando esperado;
 - persistência de definições com substituição atômica e flush em disco;
 - auditoria append-only com cadeia SHA-256 para detectar alteração acidental.
@@ -56,9 +57,12 @@ confiáveis, escolhidas por um administrador, podem ser gerenciadas. A cadeia
 SHA-256 da auditoria detecta alteração acidental, mas não substitui um destino de
 auditoria externo contra um administrador local malicioso.
 
-## Limites da alpha.4
+## Limites da beta.1
 
-- o cliente API ainda não foi implementado e não possui SID autorizado no pipe;
+- a API aceita somente loopback; acesso remoto aguarda HTTPS e configuração de
+  origens explícita;
+- o SID dedicado da API deve ser provisionado localmente em
+  `config/manager-security.json`;
 - o pipeline normal não modifica o SCM real;
 - instalação, upgrade e desinstalação completas ainda pertencem ao launcher;
 - referências de segredo continuam recusadas pelo Host até a integração segura

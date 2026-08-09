@@ -17,8 +17,9 @@ por ACL do diretório.
 
 ## Consequências
 
-- a futura API não recebe privilégio de SCM;
-- o cliente API precisará de SID explicitamente provisionado;
+- a API não recebe privilégio de SCM;
+- o cliente API usa SID explicitamente provisionado e autorização delegada
+  revalidada pelo Manager, conforme o ADR 0004;
 - payloads grandes e conexões remotas falham antes do dispatcher;
 - testes normais usam backend de SCM em memória;
 - validação nativa do SCM exige VM descartável e autorização administrativa;

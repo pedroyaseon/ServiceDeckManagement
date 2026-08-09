@@ -79,7 +79,7 @@ public sealed class LocalProtocolTests
     public void Json_RejectsUnknownProperties()
     {
         var json = """
-            {"protocolVersion":1,"requestId":"00000000-0000-0000-0000-000000000000","operation":"ping","payload":{},"extra":true}
+            {"protocolVersion":1,"requestId":"00000000-0000-0000-0000-000000000000","operation":"ping","actorId":"00000000-0000-0000-0000-000000000001","actorRole":"viewer","payload":{},"extra":true}
             """u8.ToArray();
 
         Assert.Throws<JsonException>(() => ManagerJson.Deserialize<ManagerRequestV1>(json));
@@ -91,7 +91,8 @@ public sealed class LocalProtocolTests
         var json = Encoding.UTF8.GetBytes(
             "{\"protocolVersion\":1,\"protocolVersion\":1," +
             "\"requestId\":\"00000000-0000-0000-0000-000000000000\"," +
-            "\"operation\":\"ping\",\"payload\":{}}");
+            "\"operation\":\"ping\",\"actorId\":\"00000000-0000-0000-0000-000000000001\"," +
+            "\"actorRole\":\"viewer\",\"payload\":{}}");
 
         Assert.Throws<JsonException>(() => ManagerJson.Deserialize<ManagerRequestV1>(json));
     }

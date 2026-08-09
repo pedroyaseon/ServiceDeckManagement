@@ -3,10 +3,10 @@
 ## 1. Estado e autoridade deste documento
 
 Este documento é a fonte canônica de escopo da versão 1.0. Fundação, Service
-Host e núcleo local do Manager estão implementados. API, integração de segredos,
-launcher e dashboard permanecem planejados.
+Host, núcleo local do Manager e API v1 estão implementados. Integração de
+segredos, launcher, instalador e dashboard permanecem em etapas separadas.
 
-Versão atual do produto: `1.0.0-alpha.4`.
+Versão atual do produto: `1.0.0-beta.1`.
 
 Alterações de arquitetura, confiança, armazenamento, API pública ou escopo da
 v1.0 exigem atualização deste documento ou um Architecture Decision Record

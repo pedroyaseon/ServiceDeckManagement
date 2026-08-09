@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
 using ServiceDeckManagement.Application.Abstractions;
 using ServiceDeckManagement.Application.Manager;
 using ServiceDeckManagement.Application.Validation;
@@ -36,7 +37,14 @@ public static class ManagerProgram
             var paths = new ProductPaths(rootProvider);
             var resolver = new PortablePathResolver(rootProvider);
             var validator = new ServiceDefinitionValidator(resolver);
-            new PortableAclHardener(paths).Apply();
+            var securityOptions = new ManagerSecurityConfigurationLoader(paths).Load();
+            var aclHardener = new PortableAclHardener(paths);
+            aclHardener.Apply(securityOptions);
+            var transportKeyProvider = new DpapiTransportKeyProvider(paths);
+            var transportKey = await transportKeyProvider.GetKeyAsync(cancellationToken)
+                .ConfigureAwait(false);
+            CryptographicOperations.ZeroMemory(transportKey);
+            aclHardener.ProtectTransportKey(securityOptions);
             var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
             {
                 Args = [],
@@ -53,13 +61,16 @@ public static class ManagerProgram
             builder.Services.AddSingleton<IServiceDefinitionRepository,
                 AtomicServiceDefinitionRepository>();
             builder.Services.AddSingleton<IAuditLog, HashChainedAuditLog>();
-            builder.Services.AddSingleton<ITransportKeyProvider, DpapiTransportKeyProvider>();
+            builder.Services.AddSingleton(securityOptions);
+            builder.Services.AddSingleton<ITransportKeyProvider>(transportKeyProvider);
             builder.Services.AddSingleton<IWindowsServiceControlBackend,
                 NativeWindowsServiceControlBackend>();
             builder.Services.AddSingleton<IManagedServiceController,
                 WindowsScmServiceController>();
             builder.Services.AddSingleton<ServiceManagerCoordinator>();
+            builder.Services.AddSingleton<IServiceLogReader, ServiceLogReader>();
             builder.Services.AddSingleton<ManagerRequestDispatcher>();
+            builder.Services.AddSingleton<ManagerPipeFactory>();
             builder.Services.AddSingleton<ManagerPipeServer>();
             builder.Services.AddHostedService<ManagerWorker>();
 

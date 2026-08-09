@@ -3,10 +3,13 @@ using ServiceDeckManagement.Application.Manager;
 using ServiceDeckManagement.Contracts.Manager;
 using ServiceDeckManagement.Contracts.Services;
 using ServiceDeckManagement.Contracts.Versioning;
+using ServiceDeckManagement.Domain.Manager;
 
 namespace ServiceDeckManagement.Manager;
 
-public sealed class ManagerRequestDispatcher(ServiceManagerCoordinator coordinator)
+public sealed class ManagerRequestDispatcher(
+    ServiceManagerCoordinator coordinator,
+    IServiceLogReader logReader)
 {
     public async Task<ManagerResponseV1> DispatchAsync(
         ManagerRequestV1 request,
@@ -20,7 +23,8 @@ public sealed class ManagerRequestDispatcher(ServiceManagerCoordinator coordinat
         }
 
         if (!Guid.TryParseExact(request.RequestId, "D", out _) ||
-            !ManagerAuthorization.IsAllowed(identity.Role, request.Operation))
+            !TryResolveActor(request, identity, out var actor, out var role) ||
+            !ManagerAuthorization.IsAllowed(role, request.Operation))
         {
             return Failure(request.RequestId, "request.denied",
                 "A requisição não foi autorizada.");
@@ -43,20 +47,22 @@ public sealed class ManagerRequestDispatcher(ServiceManagerCoordinator coordinat
                         RegistrationMatches = item.IdentityMatches,
                         ProcessId = item.ProcessId
                     }), ManagerJson.Options),
-                ManagerOperationsV1.Create => await CreateAsync(request, identity, cancellationToken)
+                ManagerOperationsV1.Logs => await ReadLogsAsync(request, cancellationToken)
                     .ConfigureAwait(false),
-                ManagerOperationsV1.Update => await UpdateAsync(request, identity, cancellationToken)
-                    .ConfigureAwait(false),
+                ManagerOperationsV1.Create => await CreateAsync(
+                    request, actor, cancellationToken).ConfigureAwait(false),
+                ManagerOperationsV1.Update => await UpdateAsync(
+                    request, actor, cancellationToken).ConfigureAwait(false),
                 ManagerOperationsV1.Remove => await ServiceActionAsync(
-                    request, identity, coordinator.RemoveAsync, cancellationToken).ConfigureAwait(false),
+                    request, actor, coordinator.RemoveAsync, cancellationToken).ConfigureAwait(false),
                 ManagerOperationsV1.Start => await ServiceActionAsync(
-                    request, identity, coordinator.StartAsync, cancellationToken).ConfigureAwait(false),
+                    request, actor, coordinator.StartAsync, cancellationToken).ConfigureAwait(false),
                 ManagerOperationsV1.Stop => await ServiceActionAsync(
-                    request, identity, coordinator.StopAsync, cancellationToken).ConfigureAwait(false),
+                    request, actor, coordinator.StopAsync, cancellationToken).ConfigureAwait(false),
                 ManagerOperationsV1.Restart => await ServiceActionAsync(
-                    request, identity, coordinator.RestartAsync, cancellationToken).ConfigureAwait(false),
+                    request, actor, coordinator.RestartAsync, cancellationToken).ConfigureAwait(false),
                 ManagerOperationsV1.Repair => await ServiceActionAsync(
-                    request, identity, coordinator.RepairAsync, cancellationToken).ConfigureAwait(false),
+                    request, actor, coordinator.RepairAsync, cancellationToken).ConfigureAwait(false),
                 _ => throw new InvalidOperationException("Operação desconhecida.")
             };
 
@@ -83,45 +89,74 @@ public sealed class ManagerRequestDispatcher(ServiceManagerCoordinator coordinat
         }
     }
 
-    private async Task<JsonElement?> CreateAsync(
+    private static bool TryResolveActor(
         ManagerRequestV1 request,
         ManagerClientIdentity identity,
+        out string actor,
+        out ManagerRole role)
+    {
+        if (!identity.IsApiClient)
+        {
+            actor = identity.SecurityIdentifier;
+            role = identity.Role;
+            return true;
+        }
+
+        actor = request.ActorId;
+        role = default;
+        return Guid.TryParseExact(request.ActorId, "D", out _) &&
+            Enum.TryParse(request.ActorRole, ignoreCase: true, out role) &&
+            Enum.IsDefined(role);
+    }
+
+    private async Task<JsonElement?> ReadLogsAsync(
+        ManagerRequestV1 request,
+        CancellationToken cancellationToken)
+    {
+        var payload = request.Payload.Deserialize<ServiceLogsPayloadV1>(ManagerJson.Options) ??
+            throw new JsonException("A consulta de logs está vazia.");
+        var entries = await logReader.ReadAsync(
+            payload.ServiceId,
+            payload.AfterSequence,
+            payload.Limit,
+            cancellationToken).ConfigureAwait(false);
+        return JsonSerializer.SerializeToElement(entries, ManagerJson.Options);
+    }
+
+    private async Task<JsonElement?> CreateAsync(
+        ManagerRequestV1 request,
+        string actor,
         CancellationToken cancellationToken)
     {
         var definition = request.Payload.Deserialize<ServiceDefinitionV1>(ManagerJson.Options) ??
             throw new JsonException("A definição está vazia.");
         await coordinator.CreateAsync(
-            definition, identity.SecurityIdentifier, request.RequestId, cancellationToken)
-            .ConfigureAwait(false);
+            definition, actor, request.RequestId, cancellationToken).ConfigureAwait(false);
         return null;
     }
 
     private async Task<JsonElement?> UpdateAsync(
         ManagerRequestV1 request,
-        ManagerClientIdentity identity,
+        string actor,
         CancellationToken cancellationToken)
     {
         var definition = request.Payload.Deserialize<ServiceDefinitionV1>(ManagerJson.Options) ??
             throw new JsonException("A definição está vazia.");
         await coordinator.UpdateAsync(
-            definition, identity.SecurityIdentifier, request.RequestId, cancellationToken)
-            .ConfigureAwait(false);
+            definition, actor, request.RequestId, cancellationToken).ConfigureAwait(false);
         return null;
     }
 
     private static async Task<JsonElement?> ServiceActionAsync(
         ManagerRequestV1 request,
-        ManagerClientIdentity identity,
+        string actor,
         Func<string, string, string, CancellationToken, Task> action,
         CancellationToken cancellationToken)
     {
         var payload = request.Payload.Deserialize<ServiceIdPayloadV1>(ManagerJson.Options) ??
             throw new JsonException("O identificador está vazio.");
-        await action(
-            payload.ServiceId,
-            identity.SecurityIdentifier,
-            request.RequestId,
-            cancellationToken).ConfigureAwait(false);
+        await action(payload.ServiceId, actor, request.RequestId, cancellationToken)
+            .ConfigureAwait(false);
         return null;
     }
 
