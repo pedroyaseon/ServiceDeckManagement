@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/pedroyaseon/ServiceDeckManagement/config/schemas/service-definition.v1.schema.json",
+  "title": "Service Deck Management service definition v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "displayName",
+    "executable",
+    "workingDirectory",
+    "arguments",
+    "environment",
+    "secretReferences",
+    "startMode",
+    "restartPolicy",
+    "stopPolicy",
+    "logging",
+    "healthCheck"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63,
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "executable": {
+      "$ref": "#/$defs/relativePath"
+    },
+    "workingDirectory": {
+      "$ref": "#/$defs/relativePath"
+    },
+    "arguments": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "string",
+        "maxLength": 4096
+      }
+    },
+    "environment": {
+      "$ref": "#/$defs/environmentMap"
+    },
+    "secretReferences": {
+      "$ref": "#/$defs/environmentMap"
+    },
+    "startMode": {
+      "enum": ["automatic", "manual", "disabled"]
+    },
+    "restartPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "maximumAttempts",
+        "delaySeconds",
+        "maximumDelaySeconds",
+        "resetAfterMinutes"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "maximumAttempts": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "delaySeconds": { "type": "integer", "minimum": 1, "maximum": 3600 },
+        "maximumDelaySeconds": { "type": "integer", "minimum": 1, "maximum": 86400 },
+        "resetAfterMinutes": { "type": "integer", "minimum": 1, "maximum": 10080 }
+      }
+    },
+    "stopPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gracefulTimeoutSeconds", "terminateTree"],
+      "properties": {
+        "gracefulTimeoutSeconds": { "type": "integer", "minimum": 1, "maximum": 600 },
+        "terminateTree": { "type": "boolean" }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "maximumFileSizeMb", "retainedFiles", "maximumTotalSizeMb"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "maximumFileSizeMb": { "type": "integer", "minimum": 1, "maximum": 1024 },
+        "retainedFiles": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "maximumTotalSizeMb": { "type": "integer", "minimum": 1, "maximum": 102400 }
+      }
+    },
+    "healthCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "target", "intervalSeconds", "timeoutSeconds"],
+      "properties": {
+        "type": { "enum": ["process", "http", "tcp"] },
+        "target": { "type": ["string", "null"], "maxLength": 2048 },
+        "intervalSeconds": { "type": "integer", "minimum": 1, "maximum": 3600 },
+        "timeoutSeconds": { "type": "integer", "minimum": 1, "maximum": 3600 }
+      }
+    }
+  },
+  "$defs": {
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?![A-Za-z]:)(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$)).+$"
+    },
+    "environmentMap": {
+      "type": "object",
+      "maxProperties": 128,
+      "propertyNames": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,127}$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 32768
+      }
+    }
+  }
+}

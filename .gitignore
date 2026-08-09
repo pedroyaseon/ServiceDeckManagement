@@ -9,6 +9,20 @@
 /publish/
 /logs/
 /data/
+/app/
+/apps/
+/dashboard/
+/.dotnet/
+/.dotnet-home/
+/.packages/
+
+# Configuração real é local. Somente documentação, schemas e exemplos públicos.
+/config/*
+!/config/README.md
+!/config/examples/
+!/config/examples/**
+!/config/schemas/
+!/config/schemas/**
 
 # .NET
 **/bin/
@@ -23,6 +37,14 @@
 **/node_modules/
 **/.vite/
 **/coverage/
+**/TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage.cobertura.xml
+coverage.opencover.xml
+*.nupkg
+*.snupkg
 
 # Configuração local e bancos
 *.local.json
@@ -45,9 +67,12 @@
 *.crt
 secrets/
 certificates/
+.devcerts/
 
 # IDE e sistema operacional
 .idea/
+.fleet/
+.vsconfig.local
 .vscode/*.json
 !.vscode/extensions.json
 Thumbs.db

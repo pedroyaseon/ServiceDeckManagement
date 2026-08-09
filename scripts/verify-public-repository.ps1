@@ -5,24 +5,26 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$utf8 = [Text.UTF8Encoding]::new($false, $true)
+[Console]::OutputEncoding = $utf8
+$OutputEncoding = $utf8
 $root = (Resolve-Path -LiteralPath $RepositoryRoot).Path
 $failures = [System.Collections.Generic.List[string]]::new()
 
-$ignoredDirectories = @(
-    '.git', 'bin', 'obj', 'node_modules', 'runtime', 'artifacts', 'dist'
-)
 $textExtensions = @(
     '.cs', '.csproj', '.css', '.editorconfig', '.gitattributes', '.gitignore',
-    '.json', '.md', '.props', '.ps1', '.targets', '.ts', '.tsx', '.txt',
-    '.yaml', '.yml'
+    '.json', '.md', '.props', '.ps1', '.sln', '.targets', '.ts', '.tsx',
+    '.txt', '.xml', '.yaml', '.yml'
 )
 
-$files = Get-ChildItem -LiteralPath $root -Recurse -Force -File | Where-Object {
-    $relative = $_.FullName.Substring($root.Length).TrimStart('\', '/')
-    -not ($ignoredDirectories | Where-Object {
-        $relative -eq $_ -or $relative.StartsWith("$_$([IO.Path]::DirectorySeparatorChar)")
-    })
+$relativeFiles = @(& git -C $root ls-files --cached --others --exclude-standard)
+if ($LASTEXITCODE -ne 0) {
+    throw 'Não foi possível enumerar o conteúdo publicável com o Git.'
 }
+
+$files = $relativeFiles |
+    Sort-Object -Unique |
+    ForEach-Object { Get-Item -LiteralPath (Join-Path $root $_) }
 
 $forbiddenFilePatterns = @(
     '*.pfx', '*.p12', '*.pem', '*.key', '*.db', '*.sqlite', '*.sqlite3',
@@ -36,12 +38,11 @@ foreach ($file in $files) {
     }
 }
 
-$utf8 = [Text.UTF8Encoding]::new($false, $true)
 $suspiciousText = @(
-    [char] 0x00C3,
-    [char] 0x00C2,
+    ([char] 0x00C3).ToString(),
+    ([char] 0x00C2).ToString(),
     (([char] 0x00E2).ToString() + ([char] 0x20AC).ToString()),
-    [char] 0xFFFD
+    ([char] 0xFFFD).ToString()
 )
 $secretPatterns = @(
     '-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----',
@@ -57,7 +58,11 @@ $personalPathPatterns = @(
 
 foreach ($file in $files) {
     if ($textExtensions -notcontains $file.Extension -and
-        $file.Name -notin @('LICENSE', 'README.md', 'VERSION')) {
+        $file.Name -notin @(
+            '.servicedeck-root',
+            'LICENSE',
+            'README.md',
+            'VERSION')) {
         continue
     }
 
@@ -70,7 +75,7 @@ foreach ($file in $files) {
     }
 
     foreach ($marker in $suspiciousText) {
-        if ($content.IndexOf($marker, [StringComparison]::Ordinal) -ge 0) {
+        if ($content.Contains($marker)) {
             $failures.Add("Possível mojibake '$marker': $($file.FullName)")
         }
     }
@@ -94,3 +99,4 @@ if ($failures.Count -gt 0) {
 }
 
 Write-Host "Verificação pública aprovada para $($files.Count) arquivos."
+exit 0
