@@ -24,3 +24,19 @@ privilegiada de processo no Windows. Portanto:
 
 O threat model completo e os gates de segurança estão em
 `IMPLEMENTATION_PLAN.md`.
+
+## Controles disponíveis na fundação
+
+- resolução de caminhos limitada à raiz portátil;
+- bloqueio de caminhos absolutos, UNC, traversal, nomes de dispositivo,
+  segmentos ambíguos e reparse points existentes;
+- schema JSON estrito, sem propriedades desconhecidas;
+- IDs, argumentos, variáveis, limites operacionais e health checks validados;
+- valores com nomes sensíveis direcionados a referências de segredo;
+- dependências restauradas por fonte única, versão central e lock file;
+- `.gitignore` testado automaticamente;
+- verificação pública de segredos, caminhos pessoais e encoding.
+
+Esses controles ainda não constituem um runtime seguro. A autorização em duas
+camadas, DPAPI, Named Pipes, SCM e execução de processos pertencem às próximas
+etapas e não devem ser descritos como implementados.

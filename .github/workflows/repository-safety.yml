@@ -17,3 +17,6 @@ jobs:
       - name: Verify public repository content
         shell: pwsh
         run: ./scripts/verify-public-repository.ps1
+      - name: Verify gitignore boundaries
+        shell: pwsh
+        run: ./scripts/verify-gitignore.ps1

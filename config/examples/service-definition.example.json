@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "example-api",
+  "displayName": "Example API",
+  "executable": "apps/ExampleApi/ExampleApi.exe",
+  "workingDirectory": "apps/ExampleApi",
+  "arguments": [
+    "--environment",
+    "Production"
+  ],
+  "environment": {
+    "APP_ENVIRONMENT": "Production"
+  },
+  "secretReferences": {},
+  "startMode": "automatic",
+  "restartPolicy": {
+    "enabled": true,
+    "maximumAttempts": 5,
+    "delaySeconds": 10,
+    "maximumDelaySeconds": 120,
+    "resetAfterMinutes": 15
+  },
+  "stopPolicy": {
+    "gracefulTimeoutSeconds": 20,
+    "terminateTree": true
+  },
+  "logging": {
+    "enabled": true,
+    "maximumFileSizeMb": 25,
+    "retainedFiles": 10,
+    "maximumTotalSizeMb": 250
+  },
+  "healthCheck": {
+    "type": "http",
+    "target": "http://127.0.0.1:8080/health",
+    "intervalSeconds": 15,
+    "timeoutSeconds": 3
+  }
+}

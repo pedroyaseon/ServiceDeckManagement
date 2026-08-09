@@ -3,10 +3,11 @@
 ## 1. Estado e autoridade deste documento
 
 Este documento é a fonte canônica de escopo da versão 1.0. O estado atual é
-`planejado`: ainda não existem Manager, Service Host, API, launcher ou dashboard
-implementados neste repositório.
+`fundação técnica`: contratos v1, validação, raiz portátil e testes de
+arquitetura estão implementados. Manager, Service Host, API, launcher e
+dashboard permanecem planejados.
 
-Versão inicial do produto: `1.0.0-alpha.1`.
+Versão atual do produto: `1.0.0-alpha.2`.
 
 Alterações de arquitetura, confiança, armazenamento, API pública ou escopo da
 v1.0 exigem atualização deste documento ou um Architecture Decision Record
