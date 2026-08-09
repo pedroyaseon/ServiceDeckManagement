@@ -1,30 +1,65 @@
+using System.Runtime.Versioning;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using System.Runtime.Versioning;
 using ServiceDeckManagement.Infrastructure.Paths;
 
 namespace ServiceDeckManagement.Infrastructure.Security;
 
 /// <summary>
-/// Remove herança permissiva dos diretórios privilegiados do produto.
+/// Remove herança permissiva e concede à API somente os recursos necessários.
 /// </summary>
 [SupportedOSPlatform("windows")]
 public sealed class PortableAclHardener(ProductPaths paths)
 {
-    public void Apply()
+    public void Apply(ManagerSecurityOptions options)
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            throw new PlatformNotSupportedException("ACLs do produto requerem Windows.");
-        }
-
-        Harden(paths.Configuration);
-        Harden(paths.ServiceDefinitions);
-        Harden(paths.Data);
-        Harden(paths.ManagerData);
+        ArgumentNullException.ThrowIfNull(options);
+        HardenDirectory(paths.Configuration);
+        HardenDirectory(paths.ServiceDefinitions);
+        HardenDirectory(paths.Data, options.ApiClientSid, ApiDirectoryAccess.Traverse);
+        HardenDirectory(paths.ManagerData, options.ApiClientSid, ApiDirectoryAccess.Traverse);
+        HardenDirectory(paths.ApiData, options.ApiClientSid, ApiDirectoryAccess.Modify);
     }
 
-    private static void Harden(string path)
+    public void ProtectTransportKey(ManagerSecurityOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        if (!File.Exists(paths.ManagerTransportKey))
+        {
+            throw new FileNotFoundException("A chave de transporte ainda não existe.");
+        }
+
+        var attributes = File.GetAttributes(paths.ManagerTransportKey);
+        if ((attributes & (FileAttributes.Directory | FileAttributes.ReparsePoint)) != 0)
+        {
+            throw new InvalidDataException("A chave de transporte deve ser um arquivo regular.");
+        }
+
+        var security = new FileSecurity();
+        security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+        AddFileRule(
+            security,
+            new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+            FileSystemRights.FullControl);
+        AddFileRule(
+            security,
+            new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
+            FileSystemRights.FullControl);
+        if (options.ApiClientSid is { } sidText)
+        {
+            AddFileRule(
+                security,
+                new SecurityIdentifier(sidText),
+                FileSystemRights.Read);
+        }
+
+        new FileInfo(paths.ManagerTransportKey).SetAccessControl(security);
+    }
+
+    private static void HardenDirectory(
+        string path,
+        string? apiSid = null,
+        ApiDirectoryAccess apiAccess = ApiDirectoryAccess.None)
     {
         Directory.CreateDirectory(path);
         if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
@@ -34,22 +69,60 @@ public sealed class PortableAclHardener(ProductPaths paths)
 
         var security = new DirectorySecurity();
         security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
-        AddFullControl(
+        AddDirectoryRule(
             security,
-            new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null));
-        AddFullControl(
+            new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+            FileSystemRights.FullControl,
+            inherited: true);
+        AddDirectoryRule(
             security,
-            new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null));
+            new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
+            FileSystemRights.FullControl,
+            inherited: true);
+        if (apiSid is not null && apiAccess != ApiDirectoryAccess.None)
+        {
+            var rights = apiAccess == ApiDirectoryAccess.Modify
+                ? FileSystemRights.Modify | FileSystemRights.Synchronize
+                : FileSystemRights.Traverse |
+                  FileSystemRights.ReadAttributes |
+                  FileSystemRights.ReadExtendedAttributes |
+                  FileSystemRights.ReadPermissions;
+            AddDirectoryRule(
+                security,
+                new SecurityIdentifier(apiSid),
+                rights,
+                inherited: apiAccess == ApiDirectoryAccess.Modify);
+        }
+
         new DirectoryInfo(path).SetAccessControl(security);
     }
 
-    private static void AddFullControl(
+    private static void AddDirectoryRule(
         DirectorySecurity security,
-        SecurityIdentifier sid) =>
+        SecurityIdentifier sid,
+        FileSystemRights rights,
+        bool inherited) =>
         security.AddAccessRule(new FileSystemAccessRule(
             sid,
-            FileSystemRights.FullControl,
-            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+            rights,
+            inherited ? InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit :
+                InheritanceFlags.None,
             PropagationFlags.None,
             AccessControlType.Allow));
+
+    private static void AddFileRule(
+        FileSecurity security,
+        SecurityIdentifier sid,
+        FileSystemRights rights) =>
+        security.AddAccessRule(new FileSystemAccessRule(
+            sid,
+            rights,
+            AccessControlType.Allow));
+
+    private enum ApiDirectoryAccess
+    {
+        None,
+        Traverse,
+        Modify
+    }
 }

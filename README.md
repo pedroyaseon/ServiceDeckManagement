@@ -4,10 +4,11 @@ Service Deck Management é uma plataforma open source para registrar, executar,
 supervisionar e administrar aplicações como Serviços do Windows, sem depender do
 NSSM ou de outro wrapper externo.
 
-O projeto está na versão `1.0.0-alpha.4`. A fundação, o Service Host e o núcleo
-do Manager estão implementados. O Manager persiste definições de forma atômica,
-opera somente registros identificados do produto no SCM e atende por um Named
-Pipe local autenticado. API, launcher e dashboard permanecem planejados.
+O projeto está na versão `1.0.0-beta.1`. A fundação, o Service Host, o Manager e
+a API local v1 estão implementados. O Manager persiste definições de forma
+atômica, opera somente registros identificados do produto no SCM e atende por um
+Named Pipe local autenticado. Launcher, instalador e dashboard permanecem em
+etapas separadas.
 
 ## Princípios
 
@@ -36,11 +37,12 @@ Instale o SDK definido em `global.json` localmente ou em `.dotnet/`. Em seguida:
 Consulte [docs/development.md](docs/development.md),
 [docs/configuration-v1.md](docs/configuration-v1.md),
 [docs/service-host.md](docs/service-host.md) e
-[docs/service-manager.md](docs/service-manager.md).
+[docs/service-manager.md](docs/service-manager.md). O contrato HTTP e SignalR
+está documentado em [docs/api-v1.md](docs/api-v1.md).
 
 ## Estado
 
-A alpha.4 está em validação. Os testes normais usam um backend de SCM em memória
+A beta.1 está em validação. Os testes normais usam um backend de SCM em memória
 e não criam, param ou removem serviços reais. A validação administrativa em uma
 VM descartável é um gate da futura release, não uma ação automática de CI.
 

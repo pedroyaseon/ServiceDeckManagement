@@ -1,27 +1,39 @@
 using System.IO.Pipes;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using ServiceDeckManagement.Infrastructure.Security;
+using ServiceDeckManagement.Contracts.Versioning;
 
 namespace ServiceDeckManagement.Manager;
 
-public static class ManagerPipeFactory
+public sealed class ManagerPipeFactory(ManagerSecurityOptions securityOptions)
 {
-    public const string PipeName = "ServiceDeckManagement.Manager.v1";
     public const int MaximumServerInstances = 8;
     private const int PipeRejectRemoteClients = 0x00000008;
 
-    public static NamedPipeServerStream Create()
+    public NamedPipeServerStream Create()
     {
         var security = new PipeSecurity();
         security.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
-        AddFullControl(security, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null));
-        AddFullControl(
+        AddRule(
             security,
-            new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null));
+            new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+            PipeAccessRights.FullControl);
+        AddRule(
+            security,
+            new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
+            PipeAccessRights.FullControl);
+        if (securityOptions.ApiClientSid is { } apiSid)
+        {
+            AddRule(
+                security,
+                new SecurityIdentifier(apiSid),
+                PipeAccessRights.ReadWrite | PipeAccessRights.Synchronize);
+        }
 
         var options = PipeOptions.Asynchronous | (PipeOptions)PipeRejectRemoteClients;
         return NamedPipeServerStreamAcl.Create(
-            PipeName,
+            ContractVersions.ManagerPipeName,
             PipeDirection.InOut,
             MaximumServerInstances,
             PipeTransmissionMode.Byte,
@@ -33,9 +45,9 @@ public static class ManagerPipeFactory
             PipeAccessRights.ReadWrite);
     }
 
-    private static void AddFullControl(PipeSecurity security, SecurityIdentifier sid) =>
-        security.AddAccessRule(new PipeAccessRule(
-            sid,
-            PipeAccessRights.FullControl,
-            AccessControlType.Allow));
+    private static void AddRule(
+        PipeSecurity security,
+        SecurityIdentifier sid,
+        PipeAccessRights rights) =>
+        security.AddAccessRule(new PipeAccessRule(sid, rights, AccessControlType.Allow));
 }

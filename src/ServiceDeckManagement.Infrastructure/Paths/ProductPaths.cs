@@ -26,4 +26,12 @@ public sealed class ProductPaths(IProductRootProvider rootProvider)
     public string ManagerAudit => Path.Combine(ManagerData, "audit-v1.jsonl");
 
     public string ManagerTransportKey => Path.Combine(ManagerData, "transport-key.bin");
+
+    public string ApiData => Path.Combine(Data, "api");
+
+    public string ApiDatabase => Path.Combine(ApiData, "servicedeckmanagement.db");
+
+    public string ApiProtectionKeys => Path.Combine(ApiData, "protection-keys");
+
+    public string ApiLogs => Path.Combine(Logs, "api");
 }

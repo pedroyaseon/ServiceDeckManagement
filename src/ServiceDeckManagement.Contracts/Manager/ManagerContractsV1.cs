@@ -17,6 +17,7 @@ public static class ManagerOperationsV1
     public const string Stop = "service.stop";
     public const string Restart = "service.restart";
     public const string Repair = "service.repair";
+    public const string Logs = "service.logs.read";
 }
 
 public sealed record ManagerChallengeV1
@@ -55,7 +56,40 @@ public sealed record ManagerRequestV1
     public string Operation { get; init; } = string.Empty;
 
     [JsonRequired]
+    public string ActorId { get; init; } = string.Empty;
+
+    [JsonRequired]
+    public string ActorRole { get; init; } = string.Empty;
+
+    [JsonRequired]
     public JsonElement Payload { get; init; }
+}
+
+public sealed record ServiceLogsPayloadV1
+{
+    [JsonRequired]
+    public string ServiceId { get; init; } = string.Empty;
+
+    [JsonRequired]
+    public long AfterSequence { get; init; }
+
+    [JsonRequired]
+    public int Limit { get; init; } = 200;
+}
+
+public sealed record ServiceLogEntryV1
+{
+    [JsonRequired]
+    public DateTimeOffset Timestamp { get; init; }
+
+    [JsonRequired]
+    public long Sequence { get; init; }
+
+    [JsonRequired]
+    public string Stream { get; init; } = string.Empty;
+
+    [JsonRequired]
+    public string Message { get; init; } = string.Empty;
 }
 
 public sealed record ManagerResponseV1
