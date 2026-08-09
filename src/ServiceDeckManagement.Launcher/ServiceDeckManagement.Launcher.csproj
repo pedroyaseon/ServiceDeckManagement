@@ -5,12 +5,9 @@
     <UseWPF>true</UseWPF>
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
     <RootNamespace>ServiceDeckManagement.Launcher</RootNamespace>
-    <VersionSuffix>beta.2</VersionSuffix>
+    <VersionSuffix>beta.3</VersionSuffix>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServiceDeckManagement.Contracts\ServiceDeckManagement.Contracts.csproj" />
     <ProjectReference Include="..\ServiceDeckManagement.Infrastructure\ServiceDeckManagement.Infrastructure.csproj" />

@@ -3,13 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ServiceDeckManagement.Launcher"
         Title="Service Deck Management" Width="1320" Height="820"
-        MinWidth="1040" MinHeight="680" WindowStartupLocation="CenterScreen"
+        MinWidth="1060" MinHeight="680" WindowStartupLocation="CenterScreen"
         Style="{StaticResource {x:Type Window}}">
     <Window.Resources>
         <local:ServiceStateLabelConverter x:Key="ServiceStateLabelConverter" />
         <local:ServiceStateBrushConverter x:Key="ServiceStateBrushConverter" />
         <local:StartModeLabelConverter x:Key="StartModeLabelConverter" />
     </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="56" />
@@ -25,7 +26,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Border Width="32" Height="32" CornerRadius="7" Background="{StaticResource AccentBrush}">
+                <Border Width="32" Height="32" CornerRadius="8" Background="{StaticResource AccentBrush}">
                     <TextBlock Text="SD" HorizontalAlignment="Center" VerticalAlignment="Center"
                                Foreground="White" FontSize="11" FontWeight="Bold" />
                 </Border>
@@ -33,14 +34,15 @@
                     <TextBlock Text="Service Deck Management" FontSize="14" FontWeight="SemiBold" />
                     <TextBlock Text="Launcher" Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="10,1,0,0" />
                 </StackPanel>
-                <TextBlock x:Name="CurrentUserText" Grid.Column="2" Foreground="{StaticResource MutedBrush}"
-                           VerticalAlignment="Center" FontSize="12" Text="Não autenticado" />
+                <Border Grid.Column="2" Background="{StaticResource SurfaceAltBrush}" CornerRadius="12" Padding="10,4">
+                    <TextBlock Text="Ambiente local" Foreground="{StaticResource MutedBrush}" FontSize="11" />
+                </Border>
             </Grid>
         </Border>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="224" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -52,27 +54,39 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <StackPanel>
-                        <TextBlock Text="OPERAÇÃO" Foreground="{StaticResource MutedBrush}" FontSize="10" FontWeight="SemiBold" />
+                        <TextBlock Text="GERENCIAMENTO" Foreground="{StaticResource MutedBrush}"
+                                   FontSize="10" FontWeight="SemiBold" />
                         <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="7" Margin="0,10,0,0" Padding="12,10">
                             <TextBlock Text="Serviços" FontSize="13" FontWeight="SemiBold" />
                         </Border>
-                        <TextBlock Text="Ações são executadas pela API. O Launcher não solicita elevação."
+                        <TextBlock Text="Controle local pelo Manager. A API é opcional e fica reservada ao acesso remoto."
                                    Foreground="{StaticResource MutedBrush}" FontSize="11" TextWrapping="Wrap"
                                    LineHeight="17" Margin="4,14,4,0" />
                     </StackPanel>
+
                     <StackPanel Grid.Row="2">
-                        <TextBlock Text="ESTADO" Foreground="{StaticResource MutedBrush}" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,10" />
-                        <Grid Margin="0,0,0,8">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <Ellipse x:Name="ApiStatusDot" Width="8" Height="8" Fill="#526174" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="API" Margin="9,0,0,0" FontSize="12" />
-                            <TextBlock x:Name="ApiStatusText" Grid.Column="2" Text="Offline" Foreground="{StaticResource MutedBrush}" FontSize="11" />
+                        <TextBlock Text="AMBIENTE" Foreground="{StaticResource MutedBrush}"
+                                   FontSize="10" FontWeight="SemiBold" Margin="0,0,0,11" />
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse x:Name="ManagerStatusDot" Width="8" Height="8" Fill="#526174" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="Manager local" Margin="9,0,0,0" FontSize="12" />
+                            <TextBlock x:Name="ManagerStatusText" Grid.Column="2" Text="Offline"
+                                       Foreground="{StaticResource MutedBrush}" FontSize="11" />
                         </Grid>
                         <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <Ellipse x:Name="ManagerStatusDot" Width="8" Height="8" Fill="#526174" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="Manager" Margin="9,0,0,0" FontSize="12" />
-                            <TextBlock x:Name="ManagerStatusText" Grid.Column="2" Text="Offline" Foreground="{StaticResource MutedBrush}" FontSize="11" />
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Width="8" Height="8" Fill="#526174" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="Acesso remoto" Margin="9,0,0,0" FontSize="12" />
+                            <TextBlock Grid.Column="2" Text="Opcional" Foreground="{StaticResource MutedBrush}" FontSize="11" />
                         </Grid>
                     </StackPanel>
                 </Grid>
@@ -82,58 +96,146 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
-                    <RowDefinition Height="230" />
+                    <RowDefinition Height="224" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="304" />
                 </Grid.ColumnDefinitions>
 
                 <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="22,18,22,14">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock Text="Serviços" FontSize="22" FontWeight="SemiBold" />
-                        <TextBlock x:Name="ServiceCountText" Text="Conecte-se para carregar o inventário"
+                        <TextBlock x:Name="ServiceCountText" Text="Carregando inventário local"
                                    Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,4,0,0" />
                     </StackPanel>
-                    <Button x:Name="AddButton" Grid.Column="1" Content="Adicionar" Style="{StaticResource PrimaryButton}"
-                            Width="112" Click="AddButton_Click" IsEnabled="False" />
+                    <Button x:Name="AddButton" Grid.Column="1" Content="Adicionar"
+                            Style="{StaticResource PrimaryButton}" Width="112"
+                            Click="AddButton_Click" IsEnabled="False" />
                 </Grid>
 
-                <DataGrid x:Name="ServicesGrid" Grid.Row="1" Grid.Column="0" Margin="22,0,0,14"
-                          AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
-                          SelectionUnit="FullRow" AlternationCount="2" SelectionChanged="ServicesGrid_SelectionChanged">
-                    <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="SERVIÇO" Width="2*">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" />
-                                        <TextBlock Text="{Binding Executable}" Foreground="{StaticResource MutedBrush}"
-                                                   FontSize="10" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="ESTADO" Width="*">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border Background="{Binding State, Converter={StaticResource ServiceStateBrushConverter}}"
-                                            CornerRadius="10" Padding="9,3" HorizontalAlignment="Left">
-                                        <TextBlock Text="{Binding State, Converter={StaticResource ServiceStateLabelConverter}}"
-                                                   FontSize="11" FontWeight="SemiBold" />
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="INICIALIZAÇÃO"
-                                            Binding="{Binding StartMode, Converter={StaticResource StartModeLabelConverter}}" Width="*" />
-                        <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="80" />
-                    </DataGrid.Columns>
-                </DataGrid>
+                <Border Grid.Row="1" Grid.Column="0" Margin="22,0,0,14"
+                        Background="#0C1218" BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="9" ClipToBounds="True">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="38" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid Background="{StaticResource SurfaceBrush}" Margin="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*" />
+                                <ColumnDefinition Width="132" />
+                                <ColumnDefinition Width="166" />
+                                <ColumnDefinition Width="72" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="SERVIÇO" Margin="16,0,0,0" VerticalAlignment="Center"
+                                       Foreground="{StaticResource MutedBrush}" FontSize="10" FontWeight="SemiBold" />
+                            <TextBlock Grid.Column="1" Text="ESTADO" VerticalAlignment="Center"
+                                       Foreground="{StaticResource MutedBrush}" FontSize="10" FontWeight="SemiBold" />
+                            <TextBlock Grid.Column="2" Text="INICIALIZAÇÃO" VerticalAlignment="Center"
+                                       Foreground="{StaticResource MutedBrush}" FontSize="10" FontWeight="SemiBold" />
+                            <TextBlock Grid.Column="3" Text="PID" VerticalAlignment="Center"
+                                       Foreground="{StaticResource MutedBrush}" FontSize="10" FontWeight="SemiBold" />
+                        </Grid>
 
-                <Border Grid.Row="1" Grid.Column="1" Margin="14,0,22,14" Background="{StaticResource SurfaceBrush}"
-                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="8">
+                        <ListBox x:Name="ServicesList" Grid.Row="1" Background="Transparent" BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 VirtualizingPanel.IsVirtualizing="True"
+                                 SelectionChanged="ServicesList_SelectionChanged">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderBrush" Value="#1C2632" />
+                                    <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border x:Name="Row" Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}">
+                                                    <ContentPresenter />
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Row" Property="Background" Value="#111A24" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="Row" Property="Background" Value="#14263A" />
+                                                        <Setter TargetName="Row" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                                        <Setter TargetName="Row" Property="BorderThickness" Value="3,0,0,1" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsKeyboardFocused" Value="True">
+                                                        <Setter TargetName="Row" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Height="64" Margin="16,0,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="3*" />
+                                            <ColumnDefinition Width="132" />
+                                            <ColumnDefinition Width="166" />
+                                            <ColumnDefinition Width="72" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center" Margin="0,0,18,0">
+                                            <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Executable}" Foreground="{StaticResource MutedBrush}"
+                                                       FontSize="10" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                        <Border Grid.Column="1"
+                                                Background="{Binding State, Converter={StaticResource ServiceStateBrushConverter}}"
+                                                CornerRadius="11" Padding="9,4" HorizontalAlignment="Left"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding State, Converter={StaticResource ServiceStateLabelConverter}}"
+                                                       FontSize="10" FontWeight="SemiBold" />
+                                        </Border>
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding StartMode, Converter={StaticResource StartModeLabelConverter}}"
+                                                   VerticalAlignment="Center" FontSize="12" />
+                                        <TextBlock Grid.Column="3" Text="{Binding ProcessId, TargetNullValue=—}"
+                                                   VerticalAlignment="Center" FontSize="12"
+                                                   Foreground="{StaticResource MutedBrush}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <StackPanel x:Name="NoServicesPanel" Grid.Row="1"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    IsHitTestVisible="False">
+                            <Border Width="42" Height="42" CornerRadius="21" Background="{StaticResource SurfaceAltBrush}"
+                                    HorizontalAlignment="Center">
+                                <TextBlock Text="—" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{StaticResource MutedBrush}" FontSize="18" />
+                            </Border>
+                            <TextBlock x:Name="NoServicesTitle" Text="Nenhum serviço adicionado"
+                                       HorizontalAlignment="Center" FontSize="13" FontWeight="SemiBold" Margin="0,12,0,0" />
+                            <TextBlock x:Name="NoServicesDescription" Text="Use Adicionar para registrar a primeira aplicação."
+                                       HorizontalAlignment="Center" Foreground="{StaticResource MutedBrush}"
+                                       FontSize="11" Margin="0,5,0,0" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="1" Margin="14,0,22,14"
+                        Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="9">
                     <Grid Margin="16">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -143,23 +245,30 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <Border Background="#172231" CornerRadius="6" Padding="11,9">
+                        <Border Background="#172231" CornerRadius="7" Padding="11,9">
                             <TextBlock x:Name="SelectedServiceName" Text="Nenhum serviço selecionado"
                                        FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                         </Border>
                         <TextBlock x:Name="SelectedServicePath" Grid.Row="1" Foreground="{StaticResource MutedBrush}"
-                                   Text="Selecione uma linha para ver o executável." TextWrapping="Wrap"
+                                   Text="Selecione um serviço para ver os detalhes." TextWrapping="Wrap"
                                    FontSize="11" Margin="2,10,2,14" MaxHeight="48" />
                         <Grid Grid.Row="2">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="8" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                            <Button x:Name="StartButton" Content="Iniciar" Style="{StaticResource ButtonBase}" Click="StartButton_Click" IsEnabled="False" />
-                            <Button x:Name="StopButton" Grid.Column="2" Content="Parar" Style="{StaticResource ButtonBase}" Click="StopButton_Click" IsEnabled="False" />
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="StartButton" Content="Iniciar" Style="{StaticResource ButtonBase}"
+                                    Click="StartButton_Click" IsEnabled="False" />
+                            <Button x:Name="StopButton" Grid.Column="2" Content="Parar" Style="{StaticResource ButtonBase}"
+                                    Click="StopButton_Click" IsEnabled="False" />
                         </Grid>
                         <Button x:Name="RestartButton" Grid.Row="3" Content="Reiniciar" Style="{StaticResource ButtonBase}"
                                 Margin="0,8,0,0" Click="RestartButton_Click" IsEnabled="False" />
                         <StackPanel Grid.Row="4" VerticalAlignment="Top" Margin="0,16,0,0">
                             <Separator Background="{StaticResource BorderBrush}" Margin="0,0,0,14" />
-                            <Button x:Name="EditButton" Content="Editar" Style="{StaticResource ButtonBase}" Click="EditButton_Click" IsEnabled="False" />
+                            <Button x:Name="EditButton" Content="Editar" Style="{StaticResource ButtonBase}"
+                                    Click="EditButton_Click" IsEnabled="False" />
                             <Button x:Name="RepairButton" Content="Reparar registro" Style="{StaticResource ButtonBase}"
                                     Margin="0,8,0,0" Click="RepairButton_Click" IsEnabled="False" />
                         </StackPanel>
@@ -168,16 +277,26 @@
                     </Grid>
                 </Border>
 
-                <Border Grid.Row="2" Grid.ColumnSpan="2" Background="#080D12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+                <Border Grid.Row="2" Grid.ColumnSpan="2" Background="#080D12"
+                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
                     <Grid Margin="22,12,22,14">
-                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
                         <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
                             <TextBlock Text="Logs" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button Content="Limpar" Style="{StaticResource ButtonBase}" Padding="10,5" MinHeight="28" Click="ClearLogsButton_Click" />
-                                <Button Content="Copiar" Style="{StaticResource ButtonBase}" Padding="10,5" MinHeight="28" Margin="8,0,0,0" Click="CopyLogsButton_Click" />
-                                <Button Content="Exportar" Style="{StaticResource ButtonBase}" Padding="10,5" MinHeight="28" Margin="8,0,0,0" Click="ExportLogsButton_Click" />
+                                <Button Content="Limpar" Style="{StaticResource ButtonBase}" Padding="10,5" MinHeight="28"
+                                        Click="ClearLogsButton_Click" />
+                                <Button Content="Copiar" Style="{StaticResource ButtonBase}" Padding="10,5" MinHeight="28"
+                                        Margin="8,0,0,0" Click="CopyLogsButton_Click" />
+                                <Button Content="Exportar" Style="{StaticResource ButtonBase}" Padding="10,5" MinHeight="28"
+                                        Margin="8,0,0,0" Click="ExportLogsButton_Click" />
                             </StackPanel>
                         </Grid>
                         <TextBox x:Name="LogsTextBox" Grid.Row="1" Margin="0,10,0,0" IsReadOnly="True"
@@ -189,36 +308,14 @@
             </Grid>
         </Grid>
 
-        <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+        <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
             <Grid Margin="10,0">
-                <TextBlock x:Name="FeedbackText" Text="Iniciando..." VerticalAlignment="Center"
+                <TextBlock x:Name="FeedbackText" Text="Iniciando ambiente local..." VerticalAlignment="Center"
                            Foreground="{StaticResource MutedBrush}" FontSize="11" />
-                <TextBlock Text="v1.0.0-beta.2" HorizontalAlignment="Right" VerticalAlignment="Center"
+                <TextBlock Text="v1.0.0-beta.3" HorizontalAlignment="Right" VerticalAlignment="Center"
                            Foreground="{StaticResource MutedBrush}" FontSize="11" />
             </Grid>
         </Border>
-
-        <Grid x:Name="AuthenticationOverlay" Grid.RowSpan="3" Background="#D90B0F14">
-            <Border Width="420" Padding="26" Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10"
-                    HorizontalAlignment="Center" VerticalAlignment="Center">
-                <StackPanel>
-                    <TextBlock Text="Conectar ao ambiente" FontSize="21" FontWeight="SemiBold" />
-                    <TextBlock x:Name="AuthenticationHint" Text="Use sua conta local da API."
-                               Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,6,0,20" />
-                    <StackPanel x:Name="BootstrapPanel" Visibility="Collapsed">
-                        <TextBlock Text="Código de inicialização" FontSize="12" Margin="0,0,0,6" />
-                        <TextBox x:Name="BootstrapCodeTextBox" MaxLength="16" Margin="0,0,0,14" />
-                    </StackPanel>
-                    <TextBlock Text="Usuário" FontSize="12" Margin="0,0,0,6" />
-                    <TextBox x:Name="UsernameTextBox" MaxLength="64" Margin="0,0,0,14" />
-                    <TextBlock Text="Senha" FontSize="12" Margin="0,0,0,6" />
-                    <PasswordBox x:Name="PasswordInput" MaxLength="128" Margin="0,0,0,18" />
-                    <Button x:Name="LoginButton" Content="Entrar" Style="{StaticResource PrimaryButton}" Click="LoginButton_Click" />
-                    <TextBlock x:Name="AuthenticationError" Foreground="{StaticResource DangerBrush}"
-                               TextWrapping="Wrap" FontSize="11" Margin="0,12,0,0" />
-                </StackPanel>
-            </Border>
-        </Grid>
     </Grid>
 </Window>

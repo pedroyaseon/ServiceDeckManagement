@@ -4,10 +4,14 @@
   "title": "Service Deck Management Manager security v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "apiClientSid"],
+  "required": ["schemaVersion", "apiClientSid", "launcherClientSid"],
   "properties": {
     "schemaVersion": { "const": 1 },
     "apiClientSid": {
+      "type": ["string", "null"],
+      "pattern": "^S-1-[0-9]+(?:-[0-9]+)+$"
+    },
+    "launcherClientSid": {
       "type": ["string", "null"],
       "pattern": "^S-1-[0-9]+(?:-[0-9]+)+$"
     }

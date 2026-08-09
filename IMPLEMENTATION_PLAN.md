@@ -3,10 +3,11 @@
 ## 1. Estado e autoridade deste documento
 
 Este documento é a fonte canônica de escopo da versão 1.0. Fundação, Service
-Host, núcleo local do Manager e API v1 estão implementados. Integração de
-segredos, launcher, instalador e dashboard permanecem em etapas separadas.
+Host, núcleo local do Manager, API v1 e Launcher local estão implementados.
+Integração de segredos, instalador, acesso remoto e dashboard permanecem em
+etapas separadas.
 
-Versão atual do produto: `1.0.0-beta.1`.
+Versão atual do produto: `1.0.0-beta.3`.
 
 Alterações de arquitetura, confiança, armazenamento, API pública ou escopo da
 v1.0 exigem atualização deste documento ou um Architecture Decision Record
@@ -115,21 +116,13 @@ caminhos após uma mudança autorizada.
 ## 6. Arquitetura e limites de confiança
 
 ```text
-Dashboard / Launcher
-        |
-    HTTPS + API v1 + SignalR
-        |
-ServiceDeckManagement.Api (sem privilégio administrativo)
-        |
-Named Pipe local autenticado e versionado
-        |
-ServiceDeckManagement.Manager (serviço local privilegiado)
-        |
-Windows Service Control Manager
-        |
-ServiceDeckManagement.Host --service-id <id>
-        |
-Aplicação gerenciada + Job Object
+Launcher local ---------------------+
+                                    |
+Dashboard -- HTTPS -- API opcional -+-- Named Pipe autenticado -- Manager
+                                                                      |
+                                                                     SCM
+                                                                      |
+                                                Host -- aplicação + Job Object
 ```
 
 ### 6.1 Service Host
@@ -198,16 +191,17 @@ Responsabilidades:
 
 ### 6.4 Launcher
 
-Cliente Windows para configuração inicial e administração. Operações normais
-usam a API. Elevação só pode ocorrer com consentimento explícito durante
-instalação, reparo, upgrade ou desinstalação.
+Cliente Windows para configuração inicial e administração local. Operações
+normais usam o canal autenticado do Manager e não dependem da API. Elevação só
+pode ocorrer com consentimento explícito durante instalação, reparo, upgrade
+ou desinstalação.
 
 Responsabilidades:
 
 - localizar e validar a raiz portátil;
 - instalar ou reparar Manager e API;
-- configurar acesso local ou remoto;
-- operar serviços pela API;
+- configurar o cliente local autorizado e, opcionalmente, o acesso remoto;
+- operar serviços pelo Manager sem acessar o SCM diretamente;
 - exibir estados e logs em tempo real;
 - abrir dashboard e documentação;
 - exportar diagnóstico sanitizado;
@@ -528,15 +522,16 @@ Versão: `1.0.0-beta.1`.
 
 Branch: `feature/launcher-v1`
 
-- inventário, reparo, operação, logs e estados exclusivamente pela API;
+- inventário, reparo, operação, logs e estados pelo canal local do Manager;
+- API opcional e reservada ao acesso remoto do dashboard;
 - execução como usuário comum, sem elevação automática;
-- atualização SignalR com recuperação por snapshot e fallback periódico;
+- sincronização periódica pelo protocolo local, sem atualização manual;
 - acessibilidade, interface WPF profissional e testes de apresentação.
 
 Estado: implementado na branch da etapa; sujeito aos gates, à revisão da PR e
 ao teste administrativo inicial em VM descartável.
 
-Versão: `1.0.0-beta.2`.
+Versão: `1.0.0-beta.3`.
 
 ### PR 7 — Dashboard v1
 
@@ -546,7 +541,7 @@ Branch: `feature/dashboard-v1`
 - build servido pela API;
 - testes unitários, integração e E2E.
 
-Versão: `1.0.0-beta.3`.
+Versão: `1.0.0-beta.4`.
 
 ### PR 8 — Hardening e distribuição
 

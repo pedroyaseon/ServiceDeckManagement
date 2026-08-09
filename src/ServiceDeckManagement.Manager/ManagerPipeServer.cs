@@ -131,7 +131,11 @@ public sealed class ManagerPipeServer(
                 sid,
                 securityOptions.ApiClientSid,
                 StringComparison.OrdinalIgnoreCase);
-            if (!isSystem && !isAdministrator && !isApi)
+            var isLauncher = string.Equals(
+                sid,
+                securityOptions.LauncherClientSid,
+                StringComparison.OrdinalIgnoreCase);
+            if (!isSystem && !isAdministrator && !isApi && !isLauncher)
             {
                 throw new UnauthorizedAccessException(
                     "O token do Windows não possui autorização administrativa.");

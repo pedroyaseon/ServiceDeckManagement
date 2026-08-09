@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using System.Text.Json;
 using ServiceDeckManagement.Contracts.Api;
 using ServiceDeckManagement.Contracts.Manager;
+using ServiceDeckManagement.Infrastructure.LocalProtocol;
 
 namespace ServiceDeckManagement.Api;
 

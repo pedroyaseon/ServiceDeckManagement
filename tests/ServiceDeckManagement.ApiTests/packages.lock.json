@@ -394,15 +394,15 @@
           "Microsoft.Data.Sqlite.Core": "[10.0.10, )",
           "Microsoft.Extensions.Hosting.WindowsServices": "[10.0.10, )",
           "SQLitePCLRaw.bundle_e_sqlite3": "[3.0.5, )",
-          "ServiceDeckManagement.Contracts": "[1.0.0-beta.2, )",
-          "ServiceDeckManagement.Infrastructure": "[1.0.0-beta.2, )"
+          "ServiceDeckManagement.Contracts": "[1.0.0-beta.3, )",
+          "ServiceDeckManagement.Infrastructure": "[1.0.0-beta.3, )"
         }
       },
       "servicedeckmanagement.application": {
         "type": "Project",
         "dependencies": {
-          "ServiceDeckManagement.Contracts": "[1.0.0-beta.2, )",
-          "ServiceDeckManagement.Domain": "[1.0.0-beta.2, )"
+          "ServiceDeckManagement.Contracts": "[1.0.0-beta.3, )",
+          "ServiceDeckManagement.Domain": "[1.0.0-beta.3, )"
         }
       },
       "servicedeckmanagement.contracts": {
@@ -414,9 +414,9 @@
       "servicedeckmanagement.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "ServiceDeckManagement.Application": "[1.0.0-beta.2, )",
-          "ServiceDeckManagement.Contracts": "[1.0.0-beta.2, )",
-          "ServiceDeckManagement.Domain": "[1.0.0-beta.2, )",
+          "ServiceDeckManagement.Application": "[1.0.0-beta.3, )",
+          "ServiceDeckManagement.Contracts": "[1.0.0-beta.3, )",
+          "ServiceDeckManagement.Domain": "[1.0.0-beta.3, )",
           "System.Security.Cryptography.ProtectedData": "[10.0.10, )"
         }
       },

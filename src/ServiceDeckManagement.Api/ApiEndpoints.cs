@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using ServiceDeckManagement.Contracts.Api;
 using ServiceDeckManagement.Contracts.Manager;
 using ServiceDeckManagement.Contracts.Services;
+using ServiceDeckManagement.Infrastructure.LocalProtocol;
 
 namespace ServiceDeckManagement.Api;
 

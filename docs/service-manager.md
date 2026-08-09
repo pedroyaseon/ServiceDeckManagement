@@ -1,11 +1,11 @@
-# Service Manager alpha.4
+# Service Manager v1
 
 ## Função
 
 `ServiceDeckManagement.Manager.exe` é um Serviço do Windows local e privilegiado.
 Ele mantém as definições portáteis em `config/services`, registra cada definição
-no SCM, executa start/stop/restart e fornece inventário à futura API. Não abre
-porta TCP ou HTTP.
+no SCM, executa start/stop/restart e fornece inventário ao Launcher local e à API
+opcional. Não abre porta TCP ou HTTP.
 
 ## Registro no SCM
 
@@ -46,7 +46,8 @@ Nome: `ServiceDeckManagement.Manager.v1`.
 
 Controles:
 
-- ACL sem herança, permitindo somente LocalSystem e Administradores;
+- ACL sem herança, permitindo LocalSystem, Administradores e os SIDs explícitos
+  dos clientes Launcher e API;
 - `PIPE_REJECT_REMOTE_CLIENTS` para rejeitar conexões originadas pela rede;
 - no máximo oito instâncias e sessão de 15 segundos;
 - frame `uint32 little-endian + payload`, limitado a 64 KiB;
@@ -78,14 +79,19 @@ A identidade é obtida apenas após autenticação do cliente do pipe, seguindo 
 - `service.repair`
 
 Leitura exige `Viewer`; operações de execução exigem `Operator`; alterações de
-registro exigem `Administrator`. Na alpha.4, a ACL admite somente tokens
-administrativos ou LocalSystem. A PR da API adicionará seu SID de serviço de
-forma explícita e manterá autorização em duas camadas.
+registro exigem `Administrator`. O Launcher autenticado pelo SID explícito é um
+cliente administrativo local. Campos de identidade e função enviados por ele no
+payload são ignorados. A API usa outro SID e só pode delegar uma identidade
+autenticada, que o Manager autoriza novamente.
+
+`config/manager-security.json` exige `launcherClientSid` e `apiClientSid`; cada
+campo pode ser `null` enquanto o componente correspondente não estiver
+provisionado. SIDs genéricos privilegiados e o mesmo SID nos dois campos são
+recusados. A ACL da chave de transporte concede leitura somente aos SIDs
+configurados.
 
 ## O que ainda não está concluído
 
-- cliente API e tempo real;
-- provisionamento do SID da API na ACL;
 - resolução de `secretReferences` pelo Host;
 - instalador, upgrade, rollback e desinstalador do launcher;
 - gate administrativo do SCM em VM descartável.
