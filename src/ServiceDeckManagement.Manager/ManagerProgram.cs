@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
+using System.Text;
 using ServiceDeckManagement.Application.Abstractions;
 using ServiceDeckManagement.Application.Manager;
 using ServiceDeckManagement.Application.Validation;
@@ -19,6 +20,9 @@ public static class ManagerProgram
         string[] arguments,
         CancellationToken cancellationToken = default)
     {
+        Console.OutputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        Console.InputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
         if (!OperatingSystem.IsWindows())
         {
             Console.Error.WriteLine("O Service Manager requer Windows.");

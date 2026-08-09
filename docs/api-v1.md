@@ -1,6 +1,6 @@
 # API v1
 
-Versão do componente: `1.0.0-beta.1`.
+Versão do componente: `1.0.0-beta.2`.
 
 ## Limite de rede
 

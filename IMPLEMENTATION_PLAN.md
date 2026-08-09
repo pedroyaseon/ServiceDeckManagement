@@ -528,9 +528,13 @@ Versão: `1.0.0-beta.1`.
 
 Branch: `feature/launcher-v1`
 
-- setup, reparo, operação, logs e estados pela API;
-- consentimento explícito para elevação;
-- acessibilidade e testes de apresentação.
+- inventário, reparo, operação, logs e estados exclusivamente pela API;
+- execução como usuário comum, sem elevação automática;
+- atualização SignalR com recuperação por snapshot e fallback periódico;
+- acessibilidade, interface WPF profissional e testes de apresentação.
+
+Estado: implementado na branch da etapa; sujeito aos gates, à revisão da PR e
+ao teste administrativo inicial em VM descartável.
 
 Versão: `1.0.0-beta.2`.
 

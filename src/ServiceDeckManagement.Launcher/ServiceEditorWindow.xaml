@@ -1,0 +1,80 @@
+<Window x:Class="ServiceDeckManagement.Launcher.ServiceEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Serviço" Width="680" Height="720" MinWidth="620" MinHeight="620"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Style="{StaticResource {x:Type Window}}">
+    <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Grid Margin="26,24,26,18">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="150" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel Grid.ColumnSpan="2" Margin="0,0,0,22">
+                    <TextBlock x:Name="EditorTitle" Text="Adicionar serviço" FontSize="21" FontWeight="SemiBold" />
+                    <TextBlock Text="Os caminhos devem permanecer dentro da pasta portátil do produto."
+                               Foreground="{StaticResource MutedBrush}" FontSize="12" Margin="0,5,0,0" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="1" Text="Identificador" FontSize="12" VerticalAlignment="Center" />
+                <TextBox x:Name="IdTextBox" Grid.Row="1" Grid.Column="1" MaxLength="63" Margin="0,0,0,12" />
+                <TextBlock Grid.Row="2" Text="Nome" FontSize="12" VerticalAlignment="Center" />
+                <TextBox x:Name="DisplayNameTextBox" Grid.Row="2" Grid.Column="1" MaxLength="128" Margin="0,0,0,12" />
+
+                <TextBlock Grid.Row="3" Text="Executável" FontSize="12" VerticalAlignment="Center" />
+                <Grid Grid.Row="3" Grid.Column="1" Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="8" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBox x:Name="ExecutableTextBox" MaxLength="1024" />
+                    <Button Grid.Column="2" Content="Procurar" Style="{StaticResource ButtonBase}" Click="BrowseButton_Click" />
+                </Grid>
+
+                <TextBlock Grid.Row="4" Text="Diretório de trabalho" FontSize="12" VerticalAlignment="Center" />
+                <TextBox x:Name="WorkingDirectoryTextBox" Grid.Row="4" Grid.Column="1" MaxLength="1024" Margin="0,0,0,12" />
+                <TextBlock Grid.Row="5" Text="Argumentos" FontSize="12" VerticalAlignment="Top" Margin="0,9,0,0" />
+                <TextBox x:Name="ArgumentsTextBox" Grid.Row="5" Grid.Column="1" AcceptsReturn="True" Height="92"
+                         VerticalScrollBarVisibility="Auto" TextWrapping="NoWrap" Margin="0,0,0,12" />
+
+                <TextBlock Grid.Row="6" Text="Inicialização" FontSize="12" VerticalAlignment="Center" />
+                <ComboBox x:Name="StartModeComboBox" Grid.Row="6" Grid.Column="1" Margin="0,0,0,12" SelectedValuePath="Tag">
+                    <ComboBoxItem Content="Automático" Tag="automatic" />
+                    <ComboBoxItem Content="Manual" Tag="manual" />
+                    <ComboBoxItem Content="Desativado" Tag="disabled" />
+                </ComboBox>
+
+                <TextBlock Grid.Row="7" Text="Política" FontSize="12" VerticalAlignment="Center" />
+                <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,14">
+                    <CheckBox x:Name="RestartEnabledCheckBox" Content="Reiniciar após falha" Foreground="{StaticResource TextBrush}"
+                              VerticalAlignment="Center" IsChecked="True" />
+                    <CheckBox x:Name="LoggingEnabledCheckBox" Content="Capturar logs" Foreground="{StaticResource TextBrush}"
+                              VerticalAlignment="Center" IsChecked="True" Margin="24,0,0,0" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="8" Text="Health check" FontSize="12" VerticalAlignment="Center" />
+                <Grid Grid.Row="8" Grid.Column="1" Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="140" /><ColumnDefinition Width="10" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <ComboBox x:Name="HealthTypeComboBox" SelectedValuePath="Tag" SelectionChanged="HealthTypeComboBox_SelectionChanged">
+                        <ComboBoxItem Content="Processo" Tag="process" />
+                        <ComboBoxItem Content="HTTP" Tag="http" />
+                        <ComboBoxItem Content="TCP" Tag="tcp" />
+                    </ComboBox>
+                    <TextBox x:Name="HealthTargetTextBox" Grid.Column="2" MaxLength="2048" ToolTip="Alvo HTTP ou host:porta" />
+                </Grid>
+
+                <TextBlock x:Name="ValidationText" Grid.Row="9" Grid.Column="1" Foreground="{StaticResource DangerBrush}"
+                           TextWrapping="Wrap" FontSize="11" Margin="0,4,0,0" />
+            </Grid>
+        </ScrollViewer>
+
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="20,12">
+                <Button Content="Cancelar" Style="{StaticResource ButtonBase}" Width="100" IsCancel="True" />
+                <Button Content="Salvar" Style="{StaticResource PrimaryButton}" Width="100" Margin="10,0,0,0" Click="SaveButton_Click" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

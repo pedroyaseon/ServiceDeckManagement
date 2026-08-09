@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -23,6 +24,9 @@ public static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        Console.OutputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        Console.InputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
         if (!OperatingSystem.IsWindows())
         {
             Console.Error.WriteLine("A API do Service Deck Management requer Windows.");

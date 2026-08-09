@@ -32,7 +32,9 @@ public sealed class WindowsScmServiceController(
                 ManagedServiceState.Missing,
                 Exists: false,
                 IdentityMatches: false,
-                ProcessId: null)
+                ProcessId: null,
+                definition.Executable,
+                definition.WorkingDirectory)
             : new ManagedServiceRegistration(
                 definition.Id,
                 existing.DisplayName,
@@ -40,7 +42,9 @@ public sealed class WindowsScmServiceController(
                 existing.State,
                 Exists: true,
                 IdentityMatches: IdentityMatches(existing, expected),
-                existing.ProcessId));
+                existing.ProcessId,
+                definition.Executable,
+                definition.WorkingDirectory));
     }
 
     public Task InstallAsync(ServiceDefinitionV1 definition, CancellationToken cancellationToken)

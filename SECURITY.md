@@ -57,13 +57,16 @@ confiáveis, escolhidas por um administrador, podem ser gerenciadas. A cadeia
 SHA-256 da auditoria detecta alteração acidental, mas não substitui um destino de
 auditoria externo contra um administrador local malicioso.
 
-## Limites da beta.1
+## Limites da beta.2
 
 - a API aceita somente loopback; acesso remoto aguarda HTTPS e configuração de
   origens explícita;
 - o SID dedicado da API deve ser provisionado localmente em
   `config/manager-security.json`;
 - o pipeline normal não modifica o SCM real;
-- instalação, upgrade e desinstalação completas ainda pertencem ao launcher;
+- instalação, upgrade e desinstalação completas permanecem na etapa do
+  instalador; o Launcher beta.2 não modifica a instalação do produto;
+- o Launcher executa como usuário comum, usa somente a API local, mantém o token
+  de sessão apenas em memória e não chama SCM, shell ou Manager diretamente;
 - referências de segredo continuam recusadas pelo Host até a integração segura
   entre Manager e Host ser concluída.

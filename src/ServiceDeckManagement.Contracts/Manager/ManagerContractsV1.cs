@@ -10,6 +10,7 @@ public static class ManagerOperationsV1
 {
     public const string Ping = "ping";
     public const string Inventory = "inventory.list";
+    public const string Details = "service.details";
     public const string Create = "service.create";
     public const string Update = "service.update";
     public const string Remove = "service.remove";
@@ -134,4 +135,19 @@ public sealed record ManagedServiceSnapshotV1
     public bool RegistrationMatches { get; init; }
 
     public int? ProcessId { get; init; }
+
+    [JsonRequired]
+    public string Executable { get; init; } = string.Empty;
+
+    [JsonRequired]
+    public string WorkingDirectory { get; init; } = string.Empty;
+}
+
+public sealed record ManagedServiceDetailsV1
+{
+    [JsonRequired]
+    public ManagedServiceSnapshotV1 Status { get; init; } = new();
+
+    [JsonRequired]
+    public ServiceDeckManagement.Contracts.Services.ServiceDefinitionV1 Definition { get; init; } = new();
 }

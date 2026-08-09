@@ -1,0 +1,30 @@
+<Window x:Class="ServiceDeckManagement.Launcher.AddChoiceWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Adicionar serviço" Width="460" Height="280" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Style="{StaticResource {x:Type Window}}">
+    <Grid Margin="24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+        <TextBlock Text="Adicionar serviço" FontSize="20" FontWeight="SemiBold" />
+        <TextBlock Grid.Row="1" Text="Escolha como deseja iniciar a definição." Foreground="{StaticResource MutedBrush}"
+                   FontSize="12" Margin="0,6,0,18" />
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <Button Style="{StaticResource ButtonBase}" Click="NewDefinition_Click" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="Adicionar nova" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Left" />
+                    <TextBlock Text="Preencher uma definição do início." Foreground="{StaticResource MutedBrush}"
+                               FontSize="11" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="0,7,0,0" />
+                </StackPanel>
+            </Button>
+            <Button Grid.Column="2" Style="{StaticResource ButtonBase}" Click="ExistingApplication_Click" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="Adicionar existente" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Left" />
+                    <TextBlock Text="Selecionar um executável dentro da pasta do produto." Foreground="{StaticResource MutedBrush}"
+                               FontSize="11" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="0,7,0,0" />
+                </StackPanel>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

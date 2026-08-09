@@ -102,8 +102,8 @@
       "servicedeckmanagement.application": {
         "type": "Project",
         "dependencies": {
-          "ServiceDeckManagement.Contracts": "[1.0.0-beta.1, )",
-          "ServiceDeckManagement.Domain": "[1.0.0-beta.1, )"
+          "ServiceDeckManagement.Contracts": "[1.0.0-beta.2, )",
+          "ServiceDeckManagement.Domain": "[1.0.0-beta.2, )"
         }
       },
       "servicedeckmanagement.contracts": {
@@ -115,9 +115,9 @@
       "servicedeckmanagement.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "ServiceDeckManagement.Application": "[1.0.0-beta.1, )",
-          "ServiceDeckManagement.Contracts": "[1.0.0-beta.1, )",
-          "ServiceDeckManagement.Domain": "[1.0.0-beta.1, )",
+          "ServiceDeckManagement.Application": "[1.0.0-beta.2, )",
+          "ServiceDeckManagement.Contracts": "[1.0.0-beta.2, )",
+          "ServiceDeckManagement.Domain": "[1.0.0-beta.2, )",
           "System.Security.Cryptography.ProtectedData": "[10.0.10, )"
         }
       },

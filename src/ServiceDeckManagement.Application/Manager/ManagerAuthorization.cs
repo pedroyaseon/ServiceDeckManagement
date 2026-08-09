@@ -9,6 +9,7 @@ public static class ManagerAuthorization
     {
         ManagerOperationsV1.Ping or
         ManagerOperationsV1.Inventory or
+        ManagerOperationsV1.Details or
         ManagerOperationsV1.Logs =>
             role >= ManagerRole.Viewer,
         ManagerOperationsV1.Start or

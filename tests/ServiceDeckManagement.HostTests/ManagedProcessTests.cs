@@ -51,12 +51,7 @@ public sealed class ManagedProcessTests
             sink);
 
         var managed = factory.Start(service);
-        await WaitForFileAsync(childPidPath, CancellationToken.None);
-        var childPid = int.Parse(
-            await File.ReadAllTextAsync(
-                childPidPath,
-                CancellationToken.None),
-            System.Globalization.CultureInfo.InvariantCulture);
+        var childPid = await WaitForPidAsync(childPidPath, CancellationToken.None);
 
         await managed.DisposeAsync();
 
@@ -77,10 +72,7 @@ public sealed class ManagedProcessTests
             new CollectingLogSink());
 
         await using var managed = factory.Start(service);
-        await WaitForFileAsync(childPidPath, CancellationToken.None);
-        var childPid = int.Parse(
-            await File.ReadAllTextAsync(childPidPath),
-            System.Globalization.CultureInfo.InvariantCulture);
+        var childPid = await WaitForPidAsync(childPidPath, CancellationToken.None);
         var exitCode = await managed.WaitForExitAsync(CancellationToken.None);
 
         Assert.Equal(9, exitCode);
@@ -98,6 +90,37 @@ public sealed class ManagedProcessTests
         }
 
         Assert.True(File.Exists(path), "O processo filho não publicou seu PID.");
+    }
+
+    private static async Task<int> WaitForPidAsync(
+        string path,
+        CancellationToken cancellationToken)
+    {
+        await WaitForFileAsync(path, cancellationToken);
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(5);
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            try
+            {
+                var text = await File.ReadAllTextAsync(path, cancellationToken);
+                if (int.TryParse(
+                    text,
+                    System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out var processId))
+                {
+                    return processId;
+                }
+            }
+            catch (IOException) when (DateTimeOffset.UtcNow < deadline)
+            {
+                // O processo pode ter criado o arquivo antes de concluir o flush.
+            }
+
+            await Task.Delay(50, cancellationToken);
+        }
+
+        throw new TimeoutException("O processo filho não concluiu a publicação do PID.");
     }
 
     private static async Task<bool> HasExitedAsync(int processId)
