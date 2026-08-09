@@ -7,6 +7,7 @@ using ServiceDeckManagement.Host.Health;
 using ServiceDeckManagement.Host.Logging;
 using ServiceDeckManagement.Host.Processes;
 using ServiceDeckManagement.Infrastructure.Paths;
+using ServiceDeckManagement.Domain.Services;
 
 namespace ServiceDeckManagement.Host;
 
@@ -52,7 +53,7 @@ public static class ServiceHostProgram
                 });
 
             builder.Services.AddWindowsService(options =>
-                options.ServiceName = $"ServiceDeckManagement.{definition.Definition.Id}");
+                options.ServiceName = ManagedServiceNames.FromId(definition.Definition.Id));
             builder.Logging.ClearProviders();
             builder.Services.Configure<HostOptions>(options =>
             {

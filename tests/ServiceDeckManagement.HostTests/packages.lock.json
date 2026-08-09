@@ -365,8 +365,8 @@
       "servicedeckmanagement.application": {
         "type": "Project",
         "dependencies": {
-          "ServiceDeckManagement.Contracts": "[1.0.0-alpha.3, )",
-          "ServiceDeckManagement.Domain": "[1.0.0-alpha.3, )"
+          "ServiceDeckManagement.Contracts": "[1.0.0-alpha.4, )",
+          "ServiceDeckManagement.Domain": "[1.0.0-alpha.4, )"
         }
       },
       "servicedeckmanagement.contracts": {
@@ -380,18 +380,19 @@
         "dependencies": {
           "Microsoft.Extensions.Hosting": "[10.0.10, )",
           "Microsoft.Extensions.Hosting.WindowsServices": "[10.0.10, )",
-          "ServiceDeckManagement.Application": "[1.0.0-alpha.3, )",
-          "ServiceDeckManagement.Contracts": "[1.0.0-alpha.3, )",
-          "ServiceDeckManagement.Domain": "[1.0.0-alpha.3, )",
-          "ServiceDeckManagement.Infrastructure": "[1.0.0-alpha.3, )"
+          "ServiceDeckManagement.Application": "[1.0.0-alpha.4, )",
+          "ServiceDeckManagement.Contracts": "[1.0.0-alpha.4, )",
+          "ServiceDeckManagement.Domain": "[1.0.0-alpha.4, )",
+          "ServiceDeckManagement.Infrastructure": "[1.0.0-alpha.4, )"
         }
       },
       "servicedeckmanagement.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "ServiceDeckManagement.Application": "[1.0.0-alpha.3, )",
-          "ServiceDeckManagement.Contracts": "[1.0.0-alpha.3, )",
-          "ServiceDeckManagement.Domain": "[1.0.0-alpha.3, )"
+          "ServiceDeckManagement.Application": "[1.0.0-alpha.4, )",
+          "ServiceDeckManagement.Contracts": "[1.0.0-alpha.4, )",
+          "ServiceDeckManagement.Domain": "[1.0.0-alpha.4, )",
+          "System.Security.Cryptography.ProtectedData": "[10.0.10, )"
         }
       },
       "servicedeckmanagement.testapp": {
@@ -437,6 +438,12 @@
           "Microsoft.Extensions.Logging.EventLog": "10.0.10",
           "System.ServiceProcess.ServiceController": "10.0.10"
         }
+      },
+      "System.Security.Cryptography.ProtectedData": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.10, )",
+        "resolved": "10.0.10",
+        "contentHash": "BKt0SQgq2lq3ESE68jkeLwv95ypANrPDtkTOIFGcnhg2aRUeUUBDrQlkVDZctrg1WenVcvn5P5XZnuYI7q6rFQ=="
       }
     }
   }

@@ -30,23 +30,36 @@ O threat model completo e os gates de segurança estão em
 - resolução de caminhos limitada à raiz portátil;
 - bloqueio de caminhos absolutos, UNC, traversal, nomes de dispositivo,
   segmentos ambíguos e reparse points existentes;
-- schema JSON estrito, sem propriedades desconhecidas;
+- schema JSON estrito, sem propriedades desconhecidas ou duplicadas;
 - IDs, argumentos, variáveis, limites operacionais e health checks validados;
-- valores com nomes sensíveis direcionados a referências de segredo;
 - dependências restauradas por fonte única, versão central e lock file;
-- `.gitignore` testado automaticamente;
-- verificação pública de segredos, caminhos pessoais e encoding.
-- inicialização direta de arquivos `.exe`, com `UseShellExecute = false` e
-  argumentos separados;
-- revalidação do executável e do diretório imediatamente antes da execução;
-- Windows Job Object com `KILL_ON_JOB_CLOSE` para conter a árvore de processos;
+- `.gitignore` e conteúdo público verificados automaticamente;
+- inicialização direta de arquivos `.exe`, sem shell e com argumentos separados;
+- Windows Job Object para conter a árvore de processos;
 - stdout e stderr limitados, sanitizados e persistidos em UTF-8;
 - rotação e retenção de logs com limites de arquivo e total;
 - reinício com backoff, limite de tentativas e circuit breaker;
 - health checks limitados a processo e alvos HTTP/TCP em loopback;
-- falha fechada para referências de segredo enquanto o Manager não existe.
+- Manager sem listener TCP ou HTTP;
+- Named Pipe com ACL explícita para LocalSystem e Administradores, além da opção
+  nativa `PIPE_REJECT_REMOTE_CLIENTS`;
+- frames de 64 KiB, timeout de sessão e uma requisição por conexão;
+- autenticação mútua HMAC-SHA-256 com nonce de 256 bits;
+- chave de transporte protegida por DPAPI da máquina e ACL local restrita;
+- papel calculado do token do Windows, nunca aceito do JSON do cliente;
+- registros do SCM identificados por namespace, marcador e comando esperado;
+- persistência de definições com substituição atômica e flush em disco;
+- auditoria append-only com cadeia SHA-256 para detectar alteração acidental.
 
 O Service Host não é um sandbox para executar código hostil. Somente aplicações
-confiáveis, escolhidas por um administrador, podem ser gerenciadas. Autorização
-em duas camadas, DPAPI, Named Pipes e operações no SCM pertencem às próximas
-etapas e não devem ser descritas como implementadas.
+confiáveis, escolhidas por um administrador, podem ser gerenciadas. A cadeia
+SHA-256 da auditoria detecta alteração acidental, mas não substitui um destino de
+auditoria externo contra um administrador local malicioso.
+
+## Limites da alpha.4
+
+- o cliente API ainda não foi implementado e não possui SID autorizado no pipe;
+- o pipeline normal não modifica o SCM real;
+- instalação, upgrade e desinstalação completas ainda pertencem ao launcher;
+- referências de segredo continuam recusadas pelo Host até a integração segura
+  entre Manager e Host ser concluída.

@@ -20,4 +20,10 @@ public sealed class ProductPaths(IProductRootProvider rootProvider)
     public string Logs => Path.Combine(Root, "logs");
 
     public string Runtime => Path.Combine(Root, "runtime");
+
+    public string ManagerData => Path.Combine(Data, "manager");
+
+    public string ManagerAudit => Path.Combine(ManagerData, "audit-v1.jsonl");
+
+    public string ManagerTransportKey => Path.Combine(ManagerData, "transport-key.bin");
 }
