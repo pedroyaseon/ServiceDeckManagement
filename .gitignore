@@ -1,0 +1,61 @@
+# Contexto de trabalho local: nunca publicar.
+/.agents/
+/AGENTS.md
+
+# Runtime portátil: nunca publicar estado local, dados ou segredos.
+/runtime/
+/artifacts/
+/dist/
+/publish/
+/logs/
+/data/
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Web
+**/node_modules/
+**/.vite/
+**/coverage/
+
+# Configuração local e bancos
+*.local.json
+*.local.*
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Segredos, certificados e chaves
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.p12
+*.key
+*.cer
+*.crt
+secrets/
+certificates/
+
+# IDE e sistema operacional
+.idea/
+.vscode/*.json
+!.vscode/extensions.json
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporários
+*.tmp
+*.temp
+*.bak
+*.log
