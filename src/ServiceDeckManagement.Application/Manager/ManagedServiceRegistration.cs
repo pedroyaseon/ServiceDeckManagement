@@ -9,4 +9,6 @@ public sealed record ManagedServiceRegistration(
     ManagedServiceState State,
     bool Exists,
     bool IdentityMatches,
-    int? ProcessId);
+    int? ProcessId,
+    string Executable,
+    string WorkingDirectory);

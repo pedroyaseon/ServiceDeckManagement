@@ -41,17 +41,20 @@ internal sealed class TemporaryProductRoot : IProductRootProvider, IDisposable
 
     public void Dispose()
     {
-        for (var attempt = 0; attempt < 20 && Directory.Exists(RootPath); attempt++)
+        const int maxAttempts = 50;
+        for (var attempt = 0; attempt < maxAttempts && Directory.Exists(RootPath); attempt++)
         {
             try
             {
                 Directory.Delete(RootPath, recursive: true);
             }
             catch (Exception exception) when (
-                exception is IOException or UnauthorizedAccessException &&
-                attempt < 19)
+                exception is IOException or UnauthorizedAccessException)
             {
-                Thread.Sleep(50);
+                if (attempt < maxAttempts - 1)
+                {
+                    Thread.Sleep(100);
+                }
             }
         }
     }

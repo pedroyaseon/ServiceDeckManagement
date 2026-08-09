@@ -119,13 +119,12 @@ public static class ApiEndpoints
         await SendManagerAsync(context, manager, ManagerOperationsV1.Inventory, new { }, cancellationToken).ConfigureAwait(false);
 
     private static async Task<IResult> GetServiceAsync(string serviceId, HttpContext context, IManagerClient manager, CancellationToken cancellationToken)
-    {
-        var response = await TryManagerAsync(context, manager, ManagerOperationsV1.Inventory, new { }, cancellationToken).ConfigureAwait(false);
-        if (response.Result is not null) return response.Result;
-        var services = response.Response!.Data?.Deserialize<IReadOnlyList<ManagedServiceSnapshotV1>>(ManagerJson.Options) ?? [];
-        var service = services.FirstOrDefault(item => string.Equals(item.ServiceId, serviceId, StringComparison.Ordinal));
-        return service is null ? Results.NotFound() : Results.Ok(service);
-    }
+        => await SendManagerAsync(
+            context,
+            manager,
+            ManagerOperationsV1.Details,
+            new ServiceIdPayloadV1 { ServiceId = serviceId },
+            cancellationToken).ConfigureAwait(false);
 
     private static Task<IResult> ReadLogsAsync(string serviceId, long after, int limit, HttpContext context, IManagerClient manager, CancellationToken cancellationToken) =>
         SendManagerAsync(context, manager, ManagerOperationsV1.Logs,

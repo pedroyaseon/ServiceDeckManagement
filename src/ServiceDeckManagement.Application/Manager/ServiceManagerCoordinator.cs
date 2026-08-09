@@ -28,6 +28,15 @@ public sealed class ServiceManagerCoordinator(
         return result;
     }
 
+    public async Task<(ServiceDefinitionV1 Definition, ManagedServiceRegistration Registration)> GetAsync(
+        string serviceId,
+        CancellationToken cancellationToken)
+    {
+        var definition = await RequireAsync(serviceId, cancellationToken).ConfigureAwait(false);
+        var registration = await services.InspectAsync(definition, cancellationToken).ConfigureAwait(false);
+        return (definition, registration);
+    }
+
     public async Task CreateAsync(
         ServiceDefinitionV1 definition,
         string actor,

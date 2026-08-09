@@ -68,6 +68,7 @@ A identidade é obtida apenas após autenticação do cliente do pipe, seguindo 
 
 - `ping`
 - `inventory.list`
+- `service.details`
 - `service.create`
 - `service.update`
 - `service.remove`

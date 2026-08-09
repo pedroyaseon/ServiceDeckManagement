@@ -45,8 +45,12 @@ public sealed class ManagerRequestDispatcher(
                         State = item.State.ToString().ToLowerInvariant(),
                         StartMode = item.StartMode,
                         RegistrationMatches = item.IdentityMatches,
-                        ProcessId = item.ProcessId
+                        ProcessId = item.ProcessId,
+                        Executable = item.Executable,
+                        WorkingDirectory = item.WorkingDirectory
                     }), ManagerJson.Options),
+                ManagerOperationsV1.Details => await GetDetailsAsync(
+                    request, cancellationToken).ConfigureAwait(false),
                 ManagerOperationsV1.Logs => await ReadLogsAsync(request, cancellationToken)
                     .ConfigureAwait(false),
                 ManagerOperationsV1.Create => await CreateAsync(
@@ -121,6 +125,30 @@ public sealed class ManagerRequestDispatcher(
             payload.Limit,
             cancellationToken).ConfigureAwait(false);
         return JsonSerializer.SerializeToElement(entries, ManagerJson.Options);
+    }
+
+    private async Task<JsonElement?> GetDetailsAsync(
+        ManagerRequestV1 request,
+        CancellationToken cancellationToken)
+    {
+        var payload = request.Payload.Deserialize<ServiceIdPayloadV1>(ManagerJson.Options) ??
+            throw new JsonException("A consulta de detalhes está vazia.");
+        var item = await coordinator.GetAsync(payload.ServiceId, cancellationToken).ConfigureAwait(false);
+        return JsonSerializer.SerializeToElement(new ManagedServiceDetailsV1
+        {
+            Status = new()
+            {
+                ServiceId = item.Registration.ServiceId,
+                DisplayName = item.Registration.DisplayName,
+                State = item.Registration.State.ToString().ToLowerInvariant(),
+                StartMode = item.Registration.StartMode,
+                RegistrationMatches = item.Registration.IdentityMatches,
+                ProcessId = item.Registration.ProcessId,
+                Executable = item.Registration.Executable,
+                WorkingDirectory = item.Registration.WorkingDirectory
+            },
+            Definition = item.Definition
+        }, ManagerJson.Options);
     }
 
     private async Task<JsonElement?> CreateAsync(

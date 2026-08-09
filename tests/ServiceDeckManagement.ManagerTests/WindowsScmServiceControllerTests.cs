@@ -62,6 +62,7 @@ public sealed class WindowsScmServiceControllerTests
 
     [Theory]
     [InlineData(ManagerRole.Viewer, ManagerOperationsV1.Inventory, true)]
+    [InlineData(ManagerRole.Viewer, ManagerOperationsV1.Details, true)]
     [InlineData(ManagerRole.Viewer, ManagerOperationsV1.Logs, true)]
     [InlineData(ManagerRole.Viewer, ManagerOperationsV1.Start, false)]
     [InlineData(ManagerRole.Operator, ManagerOperationsV1.Restart, true)]
