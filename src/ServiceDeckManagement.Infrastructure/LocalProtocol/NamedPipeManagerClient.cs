@@ -4,9 +4,8 @@ using System.Security.Principal;
 using System.Text.Json;
 using ServiceDeckManagement.Contracts.Manager;
 using ServiceDeckManagement.Contracts.Versioning;
-using ServiceDeckManagement.Infrastructure.LocalProtocol;
 
-namespace ServiceDeckManagement.Api;
+namespace ServiceDeckManagement.Infrastructure.LocalProtocol;
 
 public interface IManagerClient
 {

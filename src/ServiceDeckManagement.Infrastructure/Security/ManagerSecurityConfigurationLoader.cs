@@ -59,25 +59,33 @@ public sealed class ManagerSecurityConfigurationLoader(ProductPaths paths)
             throw new InvalidDataException("A versão da configuração de segurança não é suportada.");
         }
 
-        if (string.IsNullOrWhiteSpace(file.ApiClientSid))
+        var apiSid = ValidateSid(file.ApiClientSid, "API");
+        var launcherSid = ValidateSid(file.LauncherClientSid, "Launcher");
+        if (apiSid is not null && string.Equals(apiSid, launcherSid, StringComparison.OrdinalIgnoreCase))
         {
-            return ManagerSecurityOptions.LocalAdministratorsOnly;
+            throw new InvalidDataException("API e Launcher devem usar identidades Windows distintas.");
         }
 
+        return new(apiSid, launcherSid);
+    }
+
+    private static string? ValidateSid(string? value, string client)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
         try
         {
-            var sid = new SecurityIdentifier(file.ApiClientSid);
+            var sid = new SecurityIdentifier(value);
             if (sid.IsWellKnown(WellKnownSidType.LocalSystemSid) ||
                 sid.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid))
             {
-                throw new InvalidDataException("O SID da API deve representar uma identidade dedicada.");
+                throw new InvalidDataException($"O SID do {client} deve representar uma identidade dedicada.");
             }
 
-            return new(sid.Value);
+            return sid.Value;
         }
         catch (ArgumentException exception)
         {
-            throw new InvalidDataException("O SID configurado para a API é inválido.", exception);
+            throw new InvalidDataException($"O SID configurado para o {client} é inválido.", exception);
         }
     }
 
@@ -86,6 +94,10 @@ public sealed class ManagerSecurityConfigurationLoader(ProductPaths paths)
         [JsonRequired]
         public int SchemaVersion { get; init; }
 
+        [JsonRequired]
         public string? ApiClientSid { get; init; }
+
+        [JsonRequired]
+        public string? LauncherClientSid { get; init; }
     }
 }

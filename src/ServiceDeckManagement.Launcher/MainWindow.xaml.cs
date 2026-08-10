@@ -1,149 +1,60 @@
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.IO;
-using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Win32;
-using ServiceDeckManagement.Contracts.Api;
 using ServiceDeckManagement.Contracts.Manager;
 
 namespace ServiceDeckManagement.Launcher;
 
-public partial class MainWindow : Window, IAsyncDisposable
+public partial class MainWindow : Window
 {
-    private readonly ServiceDeckApiClient api;
-    private readonly RealtimeService realtime;
+    private readonly LocalManagerService manager;
     private readonly string productRoot;
     private readonly ObservableCollection<ManagedServiceSnapshotV1> services = [];
     private readonly List<ServiceLogEntryV1> logs = [];
-    private readonly DispatcherTimer monitorTimer = new() { Interval = TimeSpan.FromSeconds(3) };
-    private bool bootstrapRequired;
+    private readonly DispatcherTimer monitorTimer = new() { Interval = TimeSpan.FromSeconds(2) };
+    private bool managerConnected;
     private bool operationInProgress;
     private bool monitorInProgress;
-    private long snapshotSequence;
+    private bool applyingInventory;
     private long logSequence;
 
-    public MainWindow(LauncherOptions options, string productRoot)
+    public MainWindow(LocalManagerService manager, string productRoot)
     {
         InitializeComponent();
-        api = new ServiceDeckApiClient(options);
-        realtime = new RealtimeService(options, () => api.AccessToken);
+        this.manager = manager;
         this.productRoot = productRoot;
-        ServicesGrid.ItemsSource = services;
-        realtime.SnapshotReceived += Realtime_SnapshotReceived;
-        realtime.ConnectionChanged += Realtime_ConnectionChanged;
+        ServicesList.ItemsSource = services;
         monitorTimer.Tick += MonitorTimer_Tick;
         Loaded += MainWindow_Loaded;
         Closed += MainWindow_Closed;
     }
 
-    private ManagedServiceSnapshotV1? SelectedService => ServicesGrid.SelectedItem as ManagedServiceSnapshotV1;
-
-    private bool IsAdministrator => string.Equals(api.CurrentUser?.Role, ApiRolesV1.Administrator, StringComparison.Ordinal);
-
-    private bool CanOperate => IsAdministrator || string.Equals(api.CurrentUser?.Role, ApiRolesV1.Operator, StringComparison.Ordinal);
+    private ManagedServiceSnapshotV1? SelectedService =>
+        ServicesList.SelectedItem as ManagedServiceSnapshotV1;
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         _ = sender;
         _ = e;
-        await InitializeAsync();
-    }
-
-    private async Task InitializeAsync()
-    {
-        SetFeedback("Conectando à API...");
-        try
-        {
-            await UpdateHealthAsync();
-            var status = await api.GetBootstrapStatusAsync(CancellationToken.None);
-            bootstrapRequired = status.Required;
-            BootstrapPanel.Visibility = bootstrapRequired ? Visibility.Visible : Visibility.Collapsed;
-            AuthenticationHint.Text = bootstrapRequired
-                ? "Informe o código exibido no console da API para criar o primeiro administrador."
-                : "Use sua conta local da API.";
-            LoginButton.Content = bootstrapRequired ? "Criar administrador" : "Entrar";
-            SetFeedback(bootstrapRequired ? "Inicialização administrativa necessária." : "Aguardando autenticação.");
-            UsernameTextBox.Focus();
-        }
-        catch (Exception exception) when (IsConnectionFailure(exception))
-        {
-            SetStatus(ApiStatusDot, ApiStatusText, online: false);
-            SetStatus(ManagerStatusDot, ManagerStatusText, online: false);
-            AuthenticationError.Text = "A API local não está disponível. Inicie o componente API e abra novamente o Launcher.";
-            SetFeedback("API indisponível.");
-        }
-    }
-
-    private async void LoginButton_Click(object sender, RoutedEventArgs e)
-    {
-        _ = sender;
-        _ = e;
-        if (operationInProgress) return;
-        AuthenticationError.Text = string.Empty;
-        var username = UsernameTextBox.Text.Trim();
-        var password = PasswordInput.Password;
-        if (username.Length == 0 || password.Length == 0)
-        {
-            AuthenticationError.Text = "Informe usuário e senha.";
-            return;
-        }
-
-        await RunOperationAsync(async cancellationToken =>
-        {
-            if (bootstrapRequired)
-            {
-                await api.BootstrapAsync(BootstrapCodeTextBox.Text.Trim(), username, password, cancellationToken);
-                bootstrapRequired = false;
-            }
-
-            var session = await api.LoginAsync(username, password, cancellationToken);
-            AuthenticationOverlay.Visibility = Visibility.Collapsed;
-            CurrentUserText.Text = $"{session.User.Username} · {RoleLabel(session.User.Role)}";
-            AddButton.IsEnabled = IsAdministrator;
-            await RefreshServicesAsync(cancellationToken);
-            try
-            {
-                await realtime.StartAsync(cancellationToken);
-            }
-            catch (Exception exception) when (IsConnectionFailure(exception))
-            {
-                SetFeedback("Conectado. Atualização em tempo real indisponível; usando sincronização periódica.");
-            }
-            monitorTimer.Start();
-            SetFeedback("Ambiente conectado.");
-        }, authenticationOperation: true);
+        await RefreshServicesAsync(CancellationToken.None);
+        monitorTimer.Start();
     }
 
     private async void MonitorTimer_Tick(object? sender, EventArgs e)
     {
         _ = sender;
         _ = e;
-        if (monitorInProgress || operationInProgress || api.AccessToken is null) return;
+        if (monitorInProgress || operationInProgress) return;
         monitorInProgress = true;
         try
         {
-            await UpdateHealthAsync();
-            if (!realtime.IsConnected)
-            {
-                await RefreshServicesAsync(CancellationToken.None);
-            }
+            await RefreshServicesAsync(CancellationToken.None);
             await RefreshLogsAsync(CancellationToken.None);
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            await EndSessionAsync("Sua sessão expirou. Entre novamente.");
-        }
-        catch (Exception exception) when (IsConnectionFailure(exception))
-        {
-            SetStatus(ApiStatusDot, ApiStatusText, online: false);
-            SetStatus(ManagerStatusDot, ManagerStatusText, online: false);
-            SetFeedback("Conexão com a API interrompida. Tentando novamente...");
         }
         finally
         {
@@ -151,68 +62,93 @@ public partial class MainWindow : Window, IAsyncDisposable
         }
     }
 
-    private async Task UpdateHealthAsync()
-    {
-        var health = await api.GetHealthAsync(CancellationToken.None);
-        SetStatus(ApiStatusDot, ApiStatusText, string.Equals(health.Api, "online", StringComparison.Ordinal));
-        SetStatus(ManagerStatusDot, ManagerStatusText, string.Equals(health.Manager, "online", StringComparison.Ordinal));
-    }
-
     private async Task RefreshServicesAsync(CancellationToken cancellationToken)
     {
-        var inventory = await api.GetServicesAsync(cancellationToken);
-        ApplySnapshot(inventory);
+        try
+        {
+            var inventory = await manager.GetServicesAsync(cancellationToken);
+            managerConnected = true;
+            SetManagerStatus(online: true);
+            ApplyInventory(inventory);
+            SetFeedback(services.Count == 0
+                ? "Manager conectado. Adicione uma aplicação para começar."
+                : "Inventário local sincronizado.");
+        }
+        catch (LocalManagerException exception)
+        {
+            SetManagerUnavailable(exception.Message);
+        }
+        catch (InvalidDataException)
+        {
+            SetManagerUnavailable("O Manager local usa um protocolo incompatível com esta versão.");
+        }
+        catch (Exception exception) when (IsManagerUnavailable(exception))
+        {
+            SetManagerUnavailable(
+                exception is UnauthorizedAccessException
+                    ? "Este usuário do Windows não está autorizado no Manager local."
+                    : "Manager local indisponível. Instale ou repare o componente local.");
+        }
     }
 
-    private void ApplySnapshot(IReadOnlyList<ManagedServiceSnapshotV1> inventory)
+    private void ApplyInventory(IReadOnlyList<ManagedServiceSnapshotV1> inventory)
     {
         var selectedId = SelectedService?.ServiceId;
-        services.Clear();
-        foreach (var service in inventory.OrderBy(item => item.DisplayName, StringComparer.CurrentCultureIgnoreCase))
+        applyingInventory = true;
+        try
         {
-            services.Add(service);
+            services.Clear();
+            foreach (var service in inventory.OrderBy(
+                         item => item.DisplayName,
+                         StringComparer.CurrentCultureIgnoreCase))
+            {
+                services.Add(service);
+            }
+
+            ServiceCountText.Text = services.Count switch
+            {
+                0 => "Nenhum serviço gerenciado",
+                1 => "1 serviço gerenciado",
+                _ => $"{services.Count} serviços gerenciados"
+            };
+            NoServicesPanel.Visibility = services.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            NoServicesTitle.Text = "Nenhum serviço adicionado";
+            NoServicesDescription.Text = "Use Adicionar para registrar a primeira aplicação.";
+            if (selectedId is not null)
+            {
+                ServicesList.SelectedItem = services.FirstOrDefault(
+                    item => string.Equals(item.ServiceId, selectedId, StringComparison.Ordinal));
+            }
         }
-        ServiceCountText.Text = services.Count == 1 ? "1 serviço gerenciado" : $"{services.Count} serviços gerenciados";
-        if (selectedId is not null)
+        finally
         {
-            ServicesGrid.SelectedItem = services.FirstOrDefault(item => string.Equals(item.ServiceId, selectedId, StringComparison.Ordinal));
+            applyingInventory = false;
         }
+
         UpdateSelection();
     }
 
-    private void Realtime_SnapshotReceived(ServiceSnapshotEnvelopeV1 snapshot)
+    private void SetManagerUnavailable(string message)
     {
-        Dispatcher.InvokeAsync(async () =>
+        managerConnected = false;
+        SetManagerStatus(online: false);
+        if (services.Count == 0)
         {
-            if (snapshot.Sequence <= snapshotSequence) return;
-            if (snapshotSequence != 0 && snapshot.Sequence > snapshotSequence + 1)
-            {
-                try
-                {
-                    await RefreshServicesAsync(CancellationToken.None);
-                }
-                catch (Exception exception) when (IsConnectionFailure(exception))
-                {
-                    SetFeedback("Falha ao recuperar o snapshot mais recente.");
-                }
-            }
-            else
-            {
-                ApplySnapshot(snapshot.Services);
-            }
-            snapshotSequence = snapshot.Sequence;
-        });
+            ServiceCountText.Text = "Aguardando o Manager local";
+            NoServicesPanel.Visibility = Visibility.Visible;
+            NoServicesTitle.Text = "Manager local indisponível";
+            NoServicesDescription.Text = "A instalação ou o reparo local é necessário.";
+        }
+
+        SetFeedback(message);
+        UpdateSelection();
     }
 
-    private void Realtime_ConnectionChanged(bool connected) => Dispatcher.InvokeAsync(() =>
-    {
-        SetFeedback(connected ? "Atualização em tempo real conectada." : "Tempo real desconectado; sincronização periódica ativa.");
-    });
-
-    private async void ServicesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void ServicesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         _ = sender;
         _ = e;
+        if (applyingInventory) return;
         logSequence = 0;
         logs.Clear();
         UpdateSelection();
@@ -222,43 +158,56 @@ public partial class MainWindow : Window, IAsyncDisposable
     private void UpdateSelection()
     {
         var selected = SelectedService;
-        var available = !operationInProgress;
+        var available = managerConnected && !operationInProgress;
         SelectedServiceName.Text = selected?.DisplayName ?? "Nenhum serviço selecionado";
-        SelectedServicePath.Text = selected?.Executable ?? "Selecione uma linha para ver o executável.";
+        SelectedServicePath.Text = selected?.Executable ?? "Selecione um serviço para ver os detalhes.";
         if (selected is null) LogsTextBox.Text = "Selecione um serviço para carregar os logs.";
 
         var state = selected?.State;
-        AddButton.IsEnabled = available && IsAdministrator;
-        StartButton.IsEnabled = available && CanOperate && selected is not null && state is "stopped" or "missing";
-        StopButton.IsEnabled = available && CanOperate && selected is not null && state is "running" or "startpending";
-        RestartButton.IsEnabled = available && CanOperate && selected is not null && state == "running";
-        EditButton.IsEnabled = available && IsAdministrator && selected is not null;
-        RepairButton.IsEnabled = available && IsAdministrator && selected is not null && !selected.RegistrationMatches;
-        RemoveButton.IsEnabled = available && IsAdministrator && selected is not null;
+        AddButton.IsEnabled = available;
+        StartButton.IsEnabled = available && selected is not null && state is "stopped" or "missing";
+        StopButton.IsEnabled = available && selected is not null && state is "running" or "startpending";
+        RestartButton.IsEnabled = available && selected is not null && state == "running";
+        EditButton.IsEnabled = available && selected is not null;
+        RepairButton.IsEnabled = available && selected is not null && !selected.RegistrationMatches;
+        RemoveButton.IsEnabled = available && selected is not null;
     }
 
     private async Task RefreshLogsAsync(CancellationToken cancellationToken)
     {
         var selected = SelectedService;
-        if (selected is null || api.AccessToken is null) return;
+        if (selected is null || !managerConnected) return;
         try
         {
-            var entries = await api.GetLogsAsync(selected.ServiceId, logSequence, 200, cancellationToken);
+            var entries = await manager.GetLogsAsync(
+                selected.ServiceId,
+                logSequence,
+                200,
+                cancellationToken);
             foreach (var entry in entries.OrderBy(item => item.Sequence))
             {
                 if (entry.Sequence <= logSequence) continue;
                 logs.Add(entry);
                 logSequence = entry.Sequence;
             }
+
             if (logs.Count > 1_000) logs.RemoveRange(0, logs.Count - 1_000);
             LogsTextBox.Text = logs.Count == 0
                 ? "Nenhuma saída registrada para este serviço."
                 : string.Join(Environment.NewLine, logs.Select(FormatLog));
             LogsTextBox.ScrollToEnd();
         }
-        catch (ApiException exception) when (exception.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.Conflict)
+        catch (LocalManagerException)
         {
             LogsTextBox.Text = "Os logs deste serviço ainda não estão disponíveis.";
+        }
+        catch (InvalidDataException)
+        {
+            SetManagerUnavailable("O Manager local usa um protocolo incompatível com esta versão.");
+        }
+        catch (Exception exception) when (IsManagerUnavailable(exception))
+        {
+            SetManagerUnavailable("A conexão com o Manager local foi interrompida.");
         }
     }
 
@@ -268,11 +217,14 @@ public partial class MainWindow : Window, IAsyncDisposable
         _ = e;
         var choice = new AddChoiceWindow { Owner = this };
         if (choice.ShowDialog() != true) return;
-        var editor = new ServiceEditorWindow(productRoot, definition: null, choice.BrowseExistingApplication) { Owner = this };
+        var editor = new ServiceEditorWindow(
+            productRoot,
+            definition: null,
+            choice.BrowseExistingApplication) { Owner = this };
         if (editor.ShowDialog() != true || editor.Definition is null) return;
         await RunOperationAsync(async cancellationToken =>
         {
-            await api.CreateServiceAsync(editor.Definition, cancellationToken);
+            await manager.CreateServiceAsync(editor.Definition, cancellationToken);
             await RefreshServicesAsync(cancellationToken);
             SetFeedback($"Serviço {editor.Definition.DisplayName} adicionado.");
         });
@@ -286,24 +238,33 @@ public partial class MainWindow : Window, IAsyncDisposable
         if (selected is null) return;
         await RunOperationAsync(async cancellationToken =>
         {
-            var details = await api.GetServiceAsync(selected.ServiceId, cancellationToken);
-            var editor = new ServiceEditorWindow(productRoot, details.Definition, browseExistingApplication: false) { Owner = this };
+            var details = await manager.GetServiceAsync(selected.ServiceId, cancellationToken);
+            var editor = new ServiceEditorWindow(
+                productRoot,
+                details.Definition,
+                browseExistingApplication: false) { Owner = this };
             if (editor.ShowDialog() != true || editor.Definition is null) return;
-            await api.UpdateServiceAsync(editor.Definition, cancellationToken);
+            await manager.UpdateServiceAsync(editor.Definition, cancellationToken);
             await RefreshServicesAsync(cancellationToken);
             SetFeedback($"Serviço {editor.Definition.DisplayName} atualizado.");
         });
     }
 
-    private async void StartButton_Click(object sender, RoutedEventArgs e) => await RunServiceActionAsync("iniciado", api.StartServiceAsync);
+    private async void StartButton_Click(object sender, RoutedEventArgs e) =>
+        await RunServiceActionAsync("iniciado", manager.StartServiceAsync);
 
-    private async void StopButton_Click(object sender, RoutedEventArgs e) => await RunServiceActionAsync("parado", api.StopServiceAsync);
+    private async void StopButton_Click(object sender, RoutedEventArgs e) =>
+        await RunServiceActionAsync("parado", manager.StopServiceAsync);
 
-    private async void RestartButton_Click(object sender, RoutedEventArgs e) => await RunServiceActionAsync("reiniciado", api.RestartServiceAsync);
+    private async void RestartButton_Click(object sender, RoutedEventArgs e) =>
+        await RunServiceActionAsync("reiniciado", manager.RestartServiceAsync);
 
-    private async void RepairButton_Click(object sender, RoutedEventArgs e) => await RunServiceActionAsync("reparado", api.RepairServiceAsync);
+    private async void RepairButton_Click(object sender, RoutedEventArgs e) =>
+        await RunServiceActionAsync("reparado", manager.RepairServiceAsync);
 
-    private async Task RunServiceActionAsync(string result, Func<string, CancellationToken, Task> action)
+    private async Task RunServiceActionAsync(
+        string result,
+        Func<string, CancellationToken, Task> action)
     {
         var selected = SelectedService;
         if (selected is null) return;
@@ -331,8 +292,8 @@ public partial class MainWindow : Window, IAsyncDisposable
         if (answer != MessageBoxResult.Yes) return;
         await RunOperationAsync(async cancellationToken =>
         {
-            await api.RemoveServiceAsync(selected.ServiceId, cancellationToken);
-            ServicesGrid.SelectedItem = null;
+            await manager.RemoveServiceAsync(selected.ServiceId, cancellationToken);
+            ServicesList.SelectedItem = null;
             await RefreshServicesAsync(cancellationToken);
             SetFeedback("Serviço removido.");
         });
@@ -372,6 +333,7 @@ public partial class MainWindow : Window, IAsyncDisposable
             SetFeedback("Não há logs para exportar.");
             return;
         }
+
         var dialog = new SaveFileDialog
         {
             FileName = $"{selected.ServiceId}-logs.txt",
@@ -391,98 +353,57 @@ public partial class MainWindow : Window, IAsyncDisposable
         }
     }
 
-    private async Task RunOperationAsync(Func<CancellationToken, Task> operation, bool authenticationOperation = false)
+    private async Task RunOperationAsync(Func<CancellationToken, Task> operation)
     {
-        if (operationInProgress) return;
+        if (operationInProgress || !managerConnected) return;
         operationInProgress = true;
-        LoginButton.IsEnabled = false;
         UpdateSelection();
         try
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
             await operation(timeout.Token);
         }
-        catch (ApiException exception)
+        catch (LocalManagerException exception)
         {
-            if (authenticationOperation) AuthenticationError.Text = exception.Message;
             SetFeedback(exception.Message);
-        }
-        catch (Exception exception) when (IsConnectionFailure(exception))
-        {
-            const string message = "A API não respondeu. Verifique se o componente está em execução.";
-            if (authenticationOperation) AuthenticationError.Text = message;
-            SetFeedback(message);
         }
         catch (InvalidDataException)
         {
-            SetFeedback("A API retornou dados incompatíveis com esta versão do Launcher.");
+            SetFeedback("O Manager retornou dados incompatíveis com esta versão.");
+        }
+        catch (Exception exception) when (IsManagerUnavailable(exception))
+        {
+            SetManagerUnavailable("O Manager local não respondeu. Verifique a instalação local.");
         }
         finally
         {
             operationInProgress = false;
-            LoginButton.IsEnabled = true;
             UpdateSelection();
         }
     }
 
-    private async Task EndSessionAsync(string message)
-    {
-        monitorTimer.Stop();
-        await realtime.DisposeAsync();
-        AuthenticationOverlay.Visibility = Visibility.Visible;
-        AuthenticationError.Text = message;
-        CurrentUserText.Text = "Não autenticado";
-        services.Clear();
-        AddButton.IsEnabled = false;
-        UpdateSelection();
-    }
-
-    private async void MainWindow_Closed(object? sender, EventArgs e)
+    private void MainWindow_Closed(object? sender, EventArgs e)
     {
         _ = sender;
         _ = e;
-        await DisposeAsync();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
         monitorTimer.Stop();
-        try
-        {
-            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-            await api.LogoutAsync(timeout.Token);
-        }
-        catch (Exception exception) when (IsConnectionFailure(exception) || exception is ApiException)
-        {
-            _ = exception;
-        }
-        await realtime.DisposeAsync();
-        api.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     private void SetFeedback(string message) => FeedbackText.Text = message;
 
-    private void SetStatus(System.Windows.Shapes.Ellipse dot, TextBlock label, bool online)
+    private void SetManagerStatus(bool online)
     {
-        dot.Fill = (Brush)FindResource(online ? "SuccessBrush" : "MutedBrush");
-        label.Text = online ? "Online" : "Offline";
-        label.Foreground = (Brush)FindResource(online ? "SuccessBrush" : "MutedBrush");
+        ManagerStatusDot.Fill = (Brush)FindResource(online ? "SuccessBrush" : "MutedBrush");
+        ManagerStatusText.Text = online ? "Online" : "Offline";
+        ManagerStatusText.Foreground = (Brush)FindResource(online ? "SuccessBrush" : "MutedBrush");
     }
 
     private static string FormatLog(ServiceLogEntryV1 entry) =>
         $"[{entry.Timestamp.ToLocalTime():HH:mm:ss.fff}] [{entry.Stream.ToUpperInvariant()}] {entry.Message}";
 
-    private static string RoleLabel(string role) => role switch
-    {
-        ApiRolesV1.Administrator => "Administrador",
-        ApiRolesV1.Operator => "Operador",
-        _ => "Visualizador"
-    };
-
-    private static bool IsConnectionFailure(Exception exception) => exception is
-        HttpRequestException or
-        TaskCanceledException or
+    private static bool IsManagerUnavailable(Exception exception) => exception is
+        IOException or
         TimeoutException or
-        IOException;
+        OperationCanceledException or
+        UnauthorizedAccessException;
 }

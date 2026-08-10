@@ -1,6 +1,10 @@
 # API v1
 
-Versão do componente: `1.0.0-beta.2`.
+Versão do componente: `1.0.0-beta.3`.
+
+A API é um gateway opcional para clientes remotos, especialmente o Dashboard.
+O Launcher local não depende dela e se comunica diretamente com o Manager pelo
+canal local autenticado.
 
 ## Limite de rede
 

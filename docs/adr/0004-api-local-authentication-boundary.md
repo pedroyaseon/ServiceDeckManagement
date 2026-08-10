@@ -23,7 +23,7 @@ ignoram qualquer identidade declarada no payload.
 
 ## Consequências
 
-- o Launcher pode operar sem elevação e sem conhecer o protocolo privilegiado;
+- clientes remotos podem operar sem conceder privilégio de SCM à API;
 - comprometer uma sessão `viewer` não concede ações de `operator` ou
   `administrator` no Manager;
 - o instalador futuro precisa criar a identidade dedicada e gravar seu SID na
@@ -31,3 +31,6 @@ ignoram qualquer identidade declarada no payload.
 - configuração ausente mantém o pipe restrito a LocalSystem e Administradores;
 - exposição remota não pode ser ativada silenciosamente por variável ou JSON;
 - lacunas nos eventos SignalR são recuperadas por um snapshot REST sequenciado.
+
+A independência do Launcher em relação à API foi decidida posteriormente no
+ADR 0005. As demais decisões deste ADR permanecem válidas para acesso remoto.

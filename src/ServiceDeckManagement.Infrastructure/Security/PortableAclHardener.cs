@@ -6,7 +6,7 @@ using ServiceDeckManagement.Infrastructure.Paths;
 namespace ServiceDeckManagement.Infrastructure.Security;
 
 /// <summary>
-/// Remove herança permissiva e concede à API somente os recursos necessários.
+/// Remove herança permissiva e concede aos clientes locais somente os recursos necessários.
 /// </summary>
 [SupportedOSPlatform("windows")]
 public sealed class PortableAclHardener(ProductPaths paths)
@@ -50,6 +50,13 @@ public sealed class PortableAclHardener(ProductPaths paths)
             AddFileRule(
                 security,
                 new SecurityIdentifier(sidText),
+                FileSystemRights.Read);
+        }
+        if (options.LauncherClientSid is { } launcherSid)
+        {
+            AddFileRule(
+                security,
+                new SecurityIdentifier(launcherSid),
                 FileSystemRights.Read);
         }
 
