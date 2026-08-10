@@ -16,6 +16,15 @@ em `.dotnet-home/`, pacotes em `.packages/` e desabilita telemetria.
 & '.\scripts\dotnet.ps1' test ServiceDeckManagement.sln --no-build
 ```
 
+Uma distribuição portátil de desenvolvimento para Windows x64 é criada com:
+
+```powershell
+& '.\scripts\publish-portable.ps1'
+```
+
+O script publica Launcher, helper de configuração, Manager e Host de forma
+autocontida em `artifacts/`, gera `SHA256SUMS` e não inclui a API opcional.
+
 Antes do commit:
 
 ```powershell
@@ -50,3 +59,11 @@ O teste real das APIs nativas requer uma VM Windows descartável, execução
 administrativa, nomes temporários reservados e cleanup em `finally`. Esse teste
 é um gate manual de release e não deve ser executado em uma estação de trabalho
 com serviços do usuário.
+
+## Testes do helper e do Launcher
+
+`ServiceDeckManagement.SetupTests` valida a gramática fechada do helper, a marca
+de propriedade do serviço, a preservação do SID opcional da API e os fluxos de
+criação e reparo sem acessar o SCM real. `ServiceDeckManagement.LauncherTests`
+valida o acionamento do helper, pacote incompleto e cancelamento do UAC sem
+expor detalhes nativos.

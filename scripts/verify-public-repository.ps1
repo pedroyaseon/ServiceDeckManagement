@@ -19,7 +19,7 @@ $textExtensions = @(
 
 $relativeFiles = @(& git -C $root ls-files --cached --others --exclude-standard)
 if ($LASTEXITCODE -ne 0) {
-    throw 'Não foi possível enumerar o conteúdo publicável com o Git.'
+    throw 'Nao foi possivel enumerar o conteudo publicavel com o Git.'
 }
 
 $files = $relativeFiles |
@@ -33,7 +33,7 @@ $forbiddenFilePatterns = @(
 foreach ($file in $files) {
     foreach ($pattern in $forbiddenFilePatterns) {
         if ($file.Name -like $pattern) {
-            $failures.Add("Arquivo proibido para publicação: $($file.FullName)")
+            $failures.Add("Arquivo proibido para publicacao: $($file.FullName)")
         }
     }
 }
@@ -70,25 +70,25 @@ foreach ($file in $files) {
         $content = $utf8.GetString([IO.File]::ReadAllBytes($file.FullName))
     }
     catch {
-        $failures.Add("Arquivo textual não é UTF-8 válido: $($file.FullName)")
+        $failures.Add("Arquivo textual nao e UTF-8 valido: $($file.FullName)")
         continue
     }
 
     foreach ($marker in $suspiciousText) {
         if ($content.Contains($marker)) {
-            $failures.Add("Possível mojibake '$marker': $($file.FullName)")
+            $failures.Add("Possivel mojibake '$marker': $($file.FullName)")
         }
     }
 
     foreach ($pattern in $secretPatterns) {
         if ($content -match $pattern) {
-            $failures.Add("Possível segredo em: $($file.FullName)")
+            $failures.Add("Possivel segredo em: $($file.FullName)")
         }
     }
 
     foreach ($pattern in $personalPathPatterns) {
         if ($content -match $pattern) {
-            $failures.Add("Possível caminho pessoal em: $($file.FullName)")
+            $failures.Add("Possivel caminho pessoal em: $($file.FullName)")
         }
     }
 }
@@ -98,5 +98,5 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host "Verificação pública aprovada para $($files.Count) arquivos."
+Write-Host "Verificacao publica aprovada para $($files.Count) arquivos."
 exit 0

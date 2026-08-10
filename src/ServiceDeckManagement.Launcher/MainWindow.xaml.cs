@@ -13,6 +13,7 @@ namespace ServiceDeckManagement.Launcher;
 public partial class MainWindow : Window
 {
     private readonly LocalManagerService manager;
+    private readonly ManagerSetupService setup;
     private readonly string productRoot;
     private readonly ObservableCollection<ManagedServiceSnapshotV1> services = [];
     private readonly List<ServiceLogEntryV1> logs = [];
@@ -21,12 +22,17 @@ public partial class MainWindow : Window
     private bool operationInProgress;
     private bool monitorInProgress;
     private bool applyingInventory;
+    private bool setupInProgress;
     private long logSequence;
 
-    public MainWindow(LocalManagerService manager, string productRoot)
+    public MainWindow(
+        LocalManagerService manager,
+        ManagerSetupService setup,
+        string productRoot)
     {
         InitializeComponent();
         this.manager = manager;
+        this.setup = setup;
         this.productRoot = productRoot;
         ServicesList.ItemsSource = services;
         monitorTimer.Tick += MonitorTimer_Tick;
@@ -87,7 +93,7 @@ public partial class MainWindow : Window
             SetManagerUnavailable(
                 exception is UnauthorizedAccessException
                     ? "Este usuário do Windows não está autorizado no Manager local."
-                    : "Manager local indisponível. Instale ou repare o componente local.");
+                    : "Manager local indisponível. Configure ou repare o componente local.");
         }
     }
 
@@ -112,6 +118,7 @@ public partial class MainWindow : Window
                 _ => $"{services.Count} serviços gerenciados"
             };
             NoServicesPanel.Visibility = services.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            SetupManagerButton.Visibility = Visibility.Collapsed;
             NoServicesTitle.Text = "Nenhum serviço adicionado";
             NoServicesDescription.Text = "Use Adicionar para registrar a primeira aplicação.";
             if (selectedId is not null)
@@ -132,13 +139,32 @@ public partial class MainWindow : Window
     {
         managerConnected = false;
         SetManagerStatus(online: false);
-        if (services.Count == 0)
+        applyingInventory = true;
+        try
         {
-            ServiceCountText.Text = "Aguardando o Manager local";
-            NoServicesPanel.Visibility = Visibility.Visible;
-            NoServicesTitle.Text = "Manager local indisponível";
-            NoServicesDescription.Text = "A instalação ou o reparo local é necessário.";
+            services.Clear();
+            ServicesList.SelectedItem = null;
         }
+        finally
+        {
+            applyingInventory = false;
+        }
+
+        logs.Clear();
+        LogsTextBox.Text = "Configure o Manager local para carregar os logs.";
+        ServiceCountText.Text = "Aguardando o Manager local";
+        NoServicesPanel.Visibility = Visibility.Visible;
+        NoServicesTitle.Text = "Manager local indisponível";
+        NoServicesDescription.Text = setup.IsPackageComplete
+            ? "Configure ou repare o componente local para continuar."
+            : "O pacote está incompleto. Gere novamente a distribuição portátil.";
+        SetupManagerButton.Content = setup.HasLocalConfiguration
+            ? "Reparar Manager"
+            : "Configurar Manager";
+        SetupManagerButton.Visibility = setup.IsPackageComplete
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        SetupManagerButton.IsEnabled = !setupInProgress;
 
         SetFeedback(message);
         UpdateSelection();
@@ -228,6 +254,83 @@ public partial class MainWindow : Window
             await RefreshServicesAsync(cancellationToken);
             SetFeedback($"Serviço {editor.Definition.DisplayName} adicionado.");
         });
+    }
+
+    private async void SetupManagerButton_Click(object sender, RoutedEventArgs e)
+    {
+        _ = sender;
+        _ = e;
+        if (setupInProgress) return;
+        var action = setup.HasLocalConfiguration ? "reparar" : "configurar";
+        var answer = MessageBox.Show(
+            $"Deseja {action} o Manager local?\n\n" +
+            "O Windows solicitará permissão administrativa uma vez. " +
+            "O Launcher continuará sendo executado sem elevação.",
+            "Configuração do Manager",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Information,
+            MessageBoxResult.No);
+        if (answer != MessageBoxResult.Yes) return;
+
+        setupInProgress = true;
+        SetupManagerButton.IsEnabled = false;
+        SetFeedback("Aguardando a confirmação administrativa do Windows...");
+        try
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            var outcome = await setup.InstallOrRepairAsync(timeout.Token);
+            SetFeedback(outcome.Message);
+            if (!outcome.Success) return;
+            if (await WaitForManagerAsync(timeout.Token))
+            {
+                SetFeedback("Manager local configurado e conectado.");
+            }
+            else
+            {
+                SetManagerUnavailable(
+                    "O Manager foi registrado, mas não ficou disponível no prazo esperado.");
+            }
+        }
+        catch (Exception exception) when (exception is
+            IOException or
+            UnauthorizedAccessException or
+            InvalidOperationException or
+            OperationCanceledException or
+            System.ComponentModel.Win32Exception)
+        {
+            SetFeedback("Não foi possível concluir a configuração do Manager.");
+        }
+        finally
+        {
+            setupInProgress = false;
+            SetupManagerButton.IsEnabled = true;
+        }
+    }
+
+    private async Task<bool> WaitForManagerAsync(CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                var inventory = await manager.GetServicesAsync(cancellationToken);
+                managerConnected = true;
+                SetManagerStatus(online: true);
+                ApplyInventory(inventory);
+                return true;
+            }
+            catch (Exception exception) when (exception is
+                LocalManagerException or
+                IOException or
+                UnauthorizedAccessException or
+                TimeoutException)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
+            }
+        }
+
+        return false;
     }
 
     private async void EditButton_Click(object sender, RoutedEventArgs e)

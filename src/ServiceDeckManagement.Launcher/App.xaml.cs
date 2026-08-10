@@ -15,7 +15,14 @@ public partial class App : System.Windows.Application
             var root = ProductRootLocator.FromApplicationBaseDirectory();
             var paths = new ProductPaths(root);
             var client = new NamedPipeManagerClient(new DpapiTransportKeyReader(paths));
-            var window = new MainWindow(new LocalManagerService(client), root.RootPath);
+            var setup = new ManagerSetupService(
+                paths,
+                new ElevatedSetupRunner(),
+                new CurrentWindowsIdentity());
+            var window = new MainWindow(
+                new LocalManagerService(client),
+                setup,
+                root.RootPath);
             MainWindow = window;
             window.Show();
         }

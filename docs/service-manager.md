@@ -7,6 +7,11 @@ Ele mantém as definições portáteis em `config/services`, registra cada defin
 no SCM, executa start/stop/restart e fornece inventário ao Launcher local e à API
 opcional. Não abre porta TCP ou HTTP.
 
+Na beta.4, `ServiceDeckManagement.Setup.exe` registra ou repara o Manager após
+confirmação explícita do UAC. O helper valida o layout portátil, preserva o SID
+opcional da API, autoriza o usuário do Launcher e inicia o serviço. O Launcher
+não acessa o SCM diretamente.
+
 ## Registro no SCM
 
 Cada aplicação usa:
