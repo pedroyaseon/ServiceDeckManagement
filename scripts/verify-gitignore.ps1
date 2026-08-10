@@ -56,7 +56,7 @@ foreach ($path in $mustBeIgnored) {
 foreach ($path in $mustBeTrackable) {
     & git -C $root check-ignore --quiet -- $path
     if ($LASTEXITCODE -eq 0) {
-        $failures.Add("O caminho público não pode estar ignorado: $path")
+        $failures.Add("O caminho publico nao pode estar ignorado: $path")
     }
 }
 
@@ -65,5 +65,5 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host 'Validação do .gitignore aprovada.'
+Write-Host 'Validacao do .gitignore aprovada.'
 exit 0

@@ -60,7 +60,7 @@ confiáveis, escolhidas por um administrador, podem ser gerenciadas. A cadeia
 SHA-256 da auditoria detecta alteração acidental, mas não substitui um destino de
 auditoria externo contra um administrador local malicioso.
 
-## Limites da beta.3
+## Limites da beta.4
 
 - a API aceita somente loopback; acesso remoto aguarda HTTPS e configuração de
   origens explícita;
@@ -68,8 +68,11 @@ auditoria externo contra um administrador local malicioso.
   em `config/manager-security.json`;
 - o pipeline normal não modifica o SCM real;
 - instalação, upgrade e desinstalação completas permanecem na etapa do
-  instalador; o Launcher beta.3 não modifica a instalação do produto;
+  instalador; a beta.4 configura e repara somente o Manager pelo helper elevado;
 - o Launcher executa como usuário comum, não chama SCM ou shell e usa somente o
   canal local autenticado do Manager; nenhuma API ou credencial é exigida;
+- o helper elevado aceita apenas a operação fechada `install-manager`, recusa
+  serviços sem marcador do produto e remove escrita e propriedade do usuário
+  comum sobre os binários privilegiados;
 - referências de segredo continuam recusadas pelo Host até a integração segura
   entre Manager e Host ser concluída.

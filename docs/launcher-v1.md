@@ -14,7 +14,7 @@ O Launcher não acessa o SCM nem executa shell. O Manager continua sendo o únic
 componente privilegiado. A API é um gateway opcional, destinado ao Dashboard em
 outra máquina, e não participa do uso local do Launcher.
 
-Versão: `1.0.0-beta.3`.
+Versão: `1.0.0-beta.4`.
 
 ## Execução em desenvolvimento
 
@@ -27,6 +27,21 @@ Com o Manager instalado na mesma raiz portátil:
 O manifesto usa `asInvoker`. Abrir o Launcher não solicita elevação. O Manager
 valida a identidade do usuário do Windows no Named Pipe e executa as operações
 autorizadas.
+
+## Configuração inicial do Manager
+
+Quando o Manager não está disponível e o pacote contém os binários esperados, o
+Launcher exibe `Configurar Manager`. A ação explica o impacto e solicita UAC uma
+única vez. O processo elevado é um helper separado; a janela principal continua
+como usuário comum.
+
+O helper registra ou repara somente `ServiceDeckManagement.Manager`, autoriza o
+SID do usuário que iniciou o fluxo, protege os binários e inicia o serviço. Um
+registro existente sem o marcador do produto é recusado. Cancelar o UAC não
+altera a máquina.
+
+Depois da configuração, o Launcher aguarda o Named Pipe local e atualiza a tela
+sem reinicialização. A API não é instalada nem ativada por essa operação.
 
 ## Autorização local
 

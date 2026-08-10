@@ -7,7 +7,7 @@ Configurações reais como `api.json`, `manager-security.json` e
 distribuição, elas permanecem sob a raiz portátil escolhida pelo usuário.
 
 Para a API local, copie `examples/api.example.json` para `config/api.json`.
-Na versão `1.0.0-beta.3`, somente `127.0.0.1` é aceito; acesso remoto permanece
+Na versão `1.0.0-beta.4`, somente `127.0.0.1` é aceito; acesso remoto permanece
 desativado até existir provisionamento de HTTPS e uma política explícita de
 origem.
 

@@ -7,7 +7,7 @@ Host, núcleo local do Manager, API v1 e Launcher local estão implementados.
 Integração de segredos, instalador, acesso remoto e dashboard permanecem em
 etapas separadas.
 
-Versão atual do produto: `1.0.0-beta.3`.
+Versão atual do produto: `1.0.0-beta.4`.
 
 Alterações de arquitetura, confiança, armazenamento, API pública ou escopo da
 v1.0 exigem atualização deste documento ou um Architecture Decision Record
@@ -528,10 +528,11 @@ Branch: `feature/launcher-v1`
 - sincronização periódica pelo protocolo local, sem atualização manual;
 - acessibilidade, interface WPF profissional e testes de apresentação.
 
-Estado: implementado na branch da etapa; sujeito aos gates, à revisão da PR e
-ao teste administrativo inicial em VM descartável.
+Estado: controle local e interface integrados à `main`. A configuração inicial
+do Manager por helper elevado está em implementação e continua sujeita aos
+gates e ao teste administrativo em VM descartável.
 
-Versão: `1.0.0-beta.3`.
+Versão: `1.0.0-beta.4`.
 
 ### PR 7 — Dashboard v1
 
@@ -541,7 +542,7 @@ Branch: `feature/dashboard-v1`
 - build servido pela API;
 - testes unitários, integração e E2E.
 
-Versão: `1.0.0-beta.4`.
+Versão: `1.0.0-beta.5`.
 
 ### PR 8 — Hardening e distribuição
 
