@@ -23,5 +23,7 @@
     <NuGetAuditMode>all</NuGetAuditMode>
     <NuGetAuditLevel>low</NuGetAuditLevel>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <NuGetLockFilePath
+      Condition="'$(PortablePublishIntermediateRoot)' != ''">$(PortablePublishIntermediateRoot)\locks\$(MSBuildProjectName).packages.lock.json</NuGetLockFilePath>
   </PropertyGroup>
 </Project>

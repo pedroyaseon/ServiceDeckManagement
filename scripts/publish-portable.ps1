@@ -19,6 +19,14 @@ $artifacts = Join-Path $root 'artifacts'
 $output = Join-Path $artifacts "ServiceDeckManagement-$version-$Runtime"
 $staging = Join-Path $artifacts ("staging-" + [Guid]::NewGuid().ToString('N'))
 $package = Join-Path $artifacts ("package-" + [Guid]::NewGuid().ToString('N'))
+$intermediate = Join-Path $staging 'intermediate'
+$lockHashes = @{}
+Get-ChildItem -LiteralPath (Join-Path $root 'src'),(Join-Path $root 'tests') `
+    -Filter 'packages.lock.json' -File -Recurse |
+    ForEach-Object {
+        $lockHashes[$_.FullName] =
+            (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash
+    }
 
 function Assert-UnderArtifacts([string] $Path) {
     $full = [IO.Path]::GetFullPath($Path)
@@ -52,10 +60,19 @@ try {
             --configuration $Configuration `
             --runtime $Runtime `
             --self-contained true `
-            --output $projectOutput
+            --output $projectOutput `
+            "-p:PortablePublishIntermediateRoot=$intermediate"
         if ($LASTEXITCODE -ne 0) {
             throw "Falha ao publicar $project."
         }
+    }
+
+    $changedLocks = @($lockHashes.GetEnumerator() | Where-Object {
+        -not (Test-Path -LiteralPath $_.Key -PathType Leaf) -or
+        (Get-FileHash -Algorithm SHA256 -LiteralPath $_.Key).Hash -ne $_.Value
+    })
+    if ($changedLocks.Count -gt 0) {
+        throw 'A publicacao alterou lock files rastreados.'
     }
 
     $app = Join-Path $package 'app'
