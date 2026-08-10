@@ -121,10 +121,10 @@
           "System.Security.Cryptography.ProtectedData": "[10.0.10, )"
         }
       },
-      "servicedeckmanagement.launcher": {
+      "servicedeckmanagement.setup": {
         "type": "Project",
         "dependencies": {
-          "ServiceDeckManagement.Contracts": "[1.0.0-beta.4, )",
+          "ServiceDeckManagement.Domain": "[1.0.0-beta.4, )",
           "ServiceDeckManagement.Infrastructure": "[1.0.0-beta.4, )"
         }
       },

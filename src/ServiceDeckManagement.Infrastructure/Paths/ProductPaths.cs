@@ -11,6 +11,12 @@ public sealed class ProductPaths(IProductRootProvider rootProvider)
 
     public string Application => Path.Combine(Root, "app");
 
+    public string ManagerExecutable =>
+        Path.Combine(Application, "ServiceDeckManagement.Manager.exe");
+
+    public string SetupExecutable =>
+        Path.Combine(Application, "ServiceDeckManagement.Setup.exe");
+
     public string Configuration => Path.Combine(Root, "config");
 
     public string ServiceDefinitions => Path.Combine(Configuration, "services");

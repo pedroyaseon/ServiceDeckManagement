@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Security.Principal;
 using System.Runtime.Versioning;
 using ServiceDeckManagement.Infrastructure.Paths;
 
@@ -59,34 +58,8 @@ public sealed class ManagerSecurityConfigurationLoader(ProductPaths paths)
             throw new InvalidDataException("A versão da configuração de segurança não é suportada.");
         }
 
-        var apiSid = ValidateSid(file.ApiClientSid, "API");
-        var launcherSid = ValidateSid(file.LauncherClientSid, "Launcher");
-        if (apiSid is not null && string.Equals(apiSid, launcherSid, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidDataException("API e Launcher devem usar identidades Windows distintas.");
-        }
-
-        return new(apiSid, launcherSid);
-    }
-
-    private static string? ValidateSid(string? value, string client)
-    {
-        if (string.IsNullOrWhiteSpace(value)) return null;
-        try
-        {
-            var sid = new SecurityIdentifier(value);
-            if (sid.IsWellKnown(WellKnownSidType.LocalSystemSid) ||
-                sid.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid))
-            {
-                throw new InvalidDataException($"O SID do {client} deve representar uma identidade dedicada.");
-            }
-
-            return sid.Value;
-        }
-        catch (ArgumentException exception)
-        {
-            throw new InvalidDataException($"O SID configurado para o {client} é inválido.", exception);
-        }
+        return ManagerSecurityOptionsValidator.NormalizeAndValidate(
+            new(file.ApiClientSid, file.LauncherClientSid));
     }
 
     private sealed record ManagerSecurityFile

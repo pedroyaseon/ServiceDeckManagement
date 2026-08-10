@@ -2,14 +2,13 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <RootNamespace>ServiceDeckManagement.Launcher</RootNamespace>
+    <RootNamespace>ServiceDeckManagement.Setup</RootNamespace>
     <VersionSuffix>beta.4</VersionSuffix>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ServiceDeckManagement.Contracts\ServiceDeckManagement.Contracts.csproj" />
+    <ProjectReference Include="..\ServiceDeckManagement.Domain\ServiceDeckManagement.Domain.csproj" />
     <ProjectReference Include="..\ServiceDeckManagement.Infrastructure\ServiceDeckManagement.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
